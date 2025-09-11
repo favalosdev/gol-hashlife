@@ -1,3 +1,5 @@
+#[macro_use(c)]
+extern crate cute;
 extern crate sdl2;
 
 use sdl2::pixels::Color;
@@ -12,7 +14,7 @@ use gol::grid::Grid;
 const WINDOW_HEIGHT: u32 = 600;
 const WINDOW_WIDTH: u32 = 800;
 const SQUARE_FACTOR: u8 = 10;
-const SQUARE_SIZE: u8 = 2 * SQUARE_FACTOR;
+const SQUARE_SIZE: usize = (2 * SQUARE_FACTOR) as usize;
 const N: usize = (WINDOW_HEIGHT / (SQUARE_SIZE as u32)) as usize;
 const M: usize = (WINDOW_WIDTH / (SQUARE_SIZE as u32)) as usize;
 
@@ -29,15 +31,7 @@ fn main() {
     let mut event_pump = sdl_context.event_pump().unwrap();
     let mut grid = Grid::<N, M>::new();
 
-    grid.set(2, 3, true);
-    grid.set(2, 4, true);
-    grid.set(2, 5, true);
-    grid.set(3, 4, true);
-
-    canvas.present();
-
     'running: loop {
-        // Main event loop to intervene later on
         for event in event_pump.poll_iter() {
             match event {
                 Event::Quit {..} |
@@ -47,6 +41,23 @@ fn main() {
                 _ => {}
             }
         }
-        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+
+        for y in 0..N {
+            for x in 0..M {
+                if grid.retrieve(x,y) {
+                    canvas.set_draw_color(Color::RGB(255, 255, 255));
+                } else {
+                    canvas.set_draw_color(Color::RGB(0, 0, 0));
+                }
+                let a: i32 = (x * SQUARE_SIZE) as i32;
+                let b: i32 = (y * SQUARE_SIZE) as i32;
+                canvas.fill_rect(Rect::new(a, b, SQUARE_SIZE as u32,SQUARE_SIZE as u32));
+            }
+        }
+
+        canvas.present();
+        ::std::thread::sleep(Duration::new(0, 4_000_000_000u32 / 60));
+        grid.evolve();
+        canvas.clear();
     }
 }
