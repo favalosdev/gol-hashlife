@@ -6,6 +6,9 @@ use sdl2::keyboard::Keycode;
 use sdl2::rect::Rect;
 use std::time::Duration;
 
+mod gol;
+use gol::grid::Grid;
+
 const WINDOW_HEIGHT: u32 = 600;
 const WINDOW_WIDTH: u32 = 800;
 const SQUARE_FACTOR: u8 = 10;
@@ -24,20 +27,13 @@ fn main() {
 
     let mut canvas = window.into_canvas().build().unwrap();
     let mut event_pump = sdl_context.event_pump().unwrap();
-    let mut squares: [[bool; M]; N] = [[false; M]; N];
+    let mut grid = Grid::<N, M>::new();
 
-    canvas.set_draw_color(Color::RGB(0, 0, 0));
-    canvas.clear();
+    grid.set(2, 3, true);
+    grid.set(2, 4, true);
+    grid.set(2, 5, true);
+    grid.set(3, 4, true);
 
-    for i in 0..N {
-        for j in 0..M {
-            if squares[i][j] {
-                canvas.set_draw_color(Color::RGB(255, 255, 255));
-                canvas.fill_rect(Rect::new(((j*(SQUARE_SIZE as usize)) as i32),((i*(SQUARE_SIZE as usize)) as i32),SQUARE_SIZE as u32,SQUARE_SIZE as u32));
-            }
-        }
-    }
-    
     canvas.present();
 
     'running: loop {
@@ -51,7 +47,6 @@ fn main() {
                 _ => {}
             }
         }
-        // The rest of the game loop goes here...
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }
 }
