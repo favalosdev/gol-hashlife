@@ -6,13 +6,15 @@ impl<const N: usize, const M: usize> Grid<N, M> {
     pub fn new() -> Self {
         let mut init: [[bool;M]; N] = [[false;M]; N];
 
-        // Our way of "initializing" the seed
+        // Our way of initializing the seed
+        init[2][1] = true;
         init[2][2] = true;
         init[3][2] = true;
         init[4][2] = true;
+        init[4][3] = true;
 
         Self {
-            grid: [[false; M]; N]
+            grid: init
         }
     }
 

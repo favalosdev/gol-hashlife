@@ -56,7 +56,7 @@ fn main() {
         }
 
         canvas.present();
-        ::std::thread::sleep(Duration::new(0, 4_000_000_000u32 / 60));
+        ::std::thread::sleep(Duration::from_secs(5));
         grid.evolve();
         canvas.clear();
     }
