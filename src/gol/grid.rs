@@ -19,6 +19,12 @@ impl<const N: usize, const M: usize> Grid<N, M> {
         init[27][9] = true;
         init[26][8] = true;
 
+        init[10][11] = true;
+        init[10][12] = true;
+        init[11][12] = true;
+        init[12][12] = true;
+        init[11][13] = true;
+
         Self {
             grid: init
         }
