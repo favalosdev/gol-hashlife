@@ -40,7 +40,7 @@ fn main() {
             }
             let a: i32 = (x * SQUARE_SIZE) as i32;
             let b: i32 = (y * SQUARE_SIZE) as i32;
-            canvas.fill_rect(Rect::new(a, b, SQUARE_SIZE as u32,SQUARE_SIZE as u32));
+            let _ = canvas.fill_rect(Rect::new(a, b, SQUARE_SIZE as u32,SQUARE_SIZE as u32));
         }
     }
     canvas.present();
@@ -64,7 +64,7 @@ fn main() {
                             }
                             let a: i32 = (x * SQUARE_SIZE) as i32;
                             let b: i32 = (y * SQUARE_SIZE) as i32;
-                            canvas.fill_rect(Rect::new(a, b, SQUARE_SIZE as u32,SQUARE_SIZE as u32));
+                            let _ = canvas.fill_rect(Rect::new(a, b, SQUARE_SIZE as u32,SQUARE_SIZE as u32));
                         }
                     }
                     canvas.present();
