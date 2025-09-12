@@ -31,6 +31,20 @@ fn main() {
     let mut event_pump = sdl_context.event_pump().unwrap();
     let mut grid = Grid::<N, M>::new();
 
+    for y in 0..N {
+        for x in 0..M {
+            if grid.retrieve(x, y) {
+                canvas.set_draw_color(Color::RGB(255, 255, 255));
+            } else {
+                canvas.set_draw_color(Color::RGB(0, 0, 0));
+            }
+            let a: i32 = (x * SQUARE_SIZE) as i32;
+            let b: i32 = (y * SQUARE_SIZE) as i32;
+            canvas.fill_rect(Rect::new(a, b, SQUARE_SIZE as u32,SQUARE_SIZE as u32));
+        }
+    }
+    canvas.present();
+
     'running: loop {
         for event in event_pump.poll_iter() {
             match event {
@@ -38,26 +52,28 @@ fn main() {
                 Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
                     break 'running
                 },
+                Event::KeyDown { keycode: Some(Keycode::R), .. } => {
+                    canvas.clear();
+                    for y in 0..N {
+                        for x in 0..M {
+                            if grid.retrieve(x, y) {
+                                canvas.set_draw_color(Color::RGB(255, 255, 255));
+                            } else {
+                                canvas.set_draw_color(Color::RGB(0, 0, 0));
+                            }
+                            let a: i32 = (x * SQUARE_SIZE) as i32;
+                            let b: i32 = (y * SQUARE_SIZE) as i32;
+                            canvas.fill_rect(Rect::new(a, b, SQUARE_SIZE as u32,SQUARE_SIZE as u32));
+                        }
+                    }
+                    canvas.present();
+                },
+                Event::KeyDown { keycode: Some(Keycode::E), .. } => {
+                    grid.evolve();
+                }
                 _ => {}
             }
+            ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
         }
-
-        for y in 0..N {
-            for x in 0..M {
-                if grid.retrieve(x,y) {
-                    canvas.set_draw_color(Color::RGB(255, 255, 255));
-                } else {
-                    canvas.set_draw_color(Color::RGB(0, 0, 0));
-                }
-                let a: i32 = (x * SQUARE_SIZE) as i32;
-                let b: i32 = (y * SQUARE_SIZE) as i32;
-                canvas.fill_rect(Rect::new(a, b, SQUARE_SIZE as u32,SQUARE_SIZE as u32));
-            }
-        }
-
-        canvas.present();
-        ::std::thread::sleep(Duration::from_secs(5));
-        grid.evolve();
-        canvas.clear();
     }
 }
