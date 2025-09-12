@@ -52,7 +52,8 @@ fn main() {
                 Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
                     break 'running
                 },
-                Event::KeyDown { keycode: Some(Keycode::R), .. } => {
+                Event::KeyDown { keycode: Some(Keycode::E), .. } => {
+                    grid.evolve();
                     canvas.clear();
                     for y in 0..N {
                         for x in 0..M {
@@ -67,9 +68,6 @@ fn main() {
                         }
                     }
                     canvas.present();
-                },
-                Event::KeyDown { keycode: Some(Keycode::E), .. } => {
-                    grid.evolve();
                 }
                 _ => {}
             }
