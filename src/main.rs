@@ -8,7 +8,7 @@ use sdl2::pixels::Color;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::rect::Rect;
-use std::time::Duration;
+use std::time::{Duration,Instant};
 
 mod gol;
 use gol::grid::Grid;
@@ -19,6 +19,7 @@ const SQUARE_FACTOR: u8 = 10;
 const SQUARE_SIZE: usize = (2 * SQUARE_FACTOR) as usize;
 const N: usize = (WINDOW_HEIGHT / (SQUARE_SIZE as u32)) as usize;
 const M: usize = (WINDOW_WIDTH / (SQUARE_SIZE as u32)) as usize;
+const GAME_FREQ: u64 = 20;
 
 fn main() {
     let sdl_context = sdl2::init().unwrap();
@@ -48,22 +49,29 @@ fn main() {
         }
     };
 
+    let mut last_game_tick = Instant::now();
+    let game_interval = Duration::from_nanos(1_000_000_000 / GAME_FREQ);
+
     draw_squares(&mut canvas, &mut grid);
     canvas.present();
 
     'running: loop {
+        let  now = Instant::now();
+
+        if now.duration_since(last_game_tick) >= game_interval {
+                last_game_tick = now;
+                grid.evolve();
+                canvas.clear();
+                draw_squares(&mut canvas, &mut grid);
+                canvas.present();
+        }
+
         for event in event_pump.poll_iter() {
             match event {
                 Event::Quit {..} |
                 Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
                     break 'running
                 },
-                Event::KeyDown { keycode: Some(Keycode::E), .. } => {
-                    grid.evolve();
-                    canvas.clear();
-                    draw_squares(&mut canvas, &mut grid);
-                    canvas.present();
-                }
                 _ => {}
             }
             ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
