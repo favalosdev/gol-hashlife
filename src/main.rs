@@ -52,18 +52,15 @@ fn main() {
     let mut last_game_tick = Instant::now();
     let game_interval = Duration::from_nanos(1_000_000_000 / GAME_FREQ);
 
-    draw_squares(&mut canvas, &mut grid);
-    canvas.present();
-
     'running: loop {
         let  now = Instant::now();
 
         if now.duration_since(last_game_tick) >= game_interval {
                 last_game_tick = now;
-                grid.evolve();
                 canvas.clear();
                 draw_squares(&mut canvas, &mut grid);
                 canvas.present();
+                grid.evolve();
         }
 
         for event in event_pump.poll_iter() {
