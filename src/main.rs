@@ -50,6 +50,7 @@ fn main() {
     };
 
     let mut last_game_tick = Instant::now();
+    // This gives us how much time should pass before executing another instruction
     let game_interval = Duration::from_nanos(1_000_000_000 / GAME_FREQ);
 
     'running: loop {
