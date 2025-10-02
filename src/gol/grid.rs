@@ -59,7 +59,7 @@ impl<const N: usize, const M: usize> Grid<N, M> {
             self.grid[grid_y][grid_x] as usize
         })
         .sum()
-    } 
+    }
 
     pub fn transition(&self, x: usize, y: usize) -> bool {
         let a = self.count_alive_neighbors(x as isize, y as isize);
