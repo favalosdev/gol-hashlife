@@ -1,3 +1,5 @@
+use std::num::Wrapping;
+
 pub struct Grid<const N: usize, const M: usize> {
     grid: [[bool; M]; N]
 }
@@ -47,29 +49,19 @@ impl<const N: usize, const M: usize> Grid<N, M> {
         let m_p = M as isize;
         let n_p = N as isize;
 
-        let positions: [(isize, isize); 8] = [
-            (x-1,y),
-            (x-1,(y+1) % n_p),
-            (x,(y+1) % n_p),
-            ((x+1) % m_p,(y+1) % n_p),
-            ((x+1) % m_p,y),
-            ((x+1) % m_p,y-1),
-            (x,y-1),
-            (x-1,y-1)
+        let offsets = [
+            (-1, -1), (0, -1), (1, -1),
+            (-1,  0),          (1,  0),
+            (-1,  1), (0,  1), (1,  1),
         ];
 
-        let mut count = 0;
-
-        for (x,y) in positions {
-            if 0 <= x && x < m_p && 0 <= y && y < n_p {
-                if self.grid[y as usize][x as usize] {
-                    count += 1;
-                }
-            }
-        }
-
-        return count;
-    }
+        offsets.iter().map(|&(dx, dy)| {
+            let grid_x = (x + dx).rem_euclid(m_p) as usize;
+            let grid_y = (y + dy).rem_euclid(n_p) as usize;
+            self.grid[grid_y][grid_x] as usize
+        })
+        .sum()
+    } 
 
     pub fn transition(&self, x: usize, y: usize) -> bool {
         let a = self.count_alive_neighbors(x as isize, y as isize);
