@@ -1,5 +1,3 @@
-use std::num::Wrapping;
-
 pub struct Grid<const N: usize, const M: usize> {
     grid: [[bool; M]; N]
 }
