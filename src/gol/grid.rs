@@ -39,23 +39,48 @@ impl<const N: usize, const M: usize> Grid<N, M> {
                 copy[y][x] = value;
             }
         }
+
         self.grid = copy;
     }
 
+    fn count_alive_neighbors(&self, x: isize, y: isize) -> usize {
+        let m_p = M as isize;
+        let n_p = N as isize;
+
+        let positions: [(isize, isize); 8] = [
+            (x-1,y),
+            (x-1,(y+1) % n_p),
+            (x,(y+1) % n_p),
+            ((x+1) % m_p,(y+1) % n_p),
+            ((x+1) % m_p,y),
+            ((x+1) % m_p,y-1),
+            (x,y-1),
+            (x-1,y-1)
+        ];
+
+        let mut count = 0;
+
+        for (x,y) in positions {
+            if 0 <= x && x < m_p && 0 <= y && y < n_p {
+                if self.grid[y as usize][x as usize] {
+                    count += 1;
+                }
+            }
+        }
+
+        return count;
+    }
+
     pub fn transition(&self, x: usize, y: usize) -> bool {
-        let x_p: i32 = x as i32;
-        let y_p: i32 = y as i32;
-        let positions: [(i32, i32); 8] = [(x_p-1,y_p),(x_p-1,y_p+1),(x_p,y_p+1),(x_p+1,y_p+1),(x_p+1,y_p),(x_p+1,y_p-1),(x_p,y_p-1),(x_p-1,y_p-1)];
-        let neighbors = c![self.grid[p.1 as usize][p.0 as usize], for p in positions, if 0 <= p.0 && p.0 < (M as i32) && 0 <= p.1 && p.1 < (N as i32)];
-        let alive: usize = c![n, for n in neighbors, if n == true].len();
+        let a = self.count_alive_neighbors(x as isize, y as isize);
 
         if self.grid[y][x] {
-            if alive < 2 || alive > 3 {
+            if a < 2 || a > 3 {
                 return false;
             }
         } 
 
-        if alive == 3 {
+        if a == 3 {
             return true;
         }
 
