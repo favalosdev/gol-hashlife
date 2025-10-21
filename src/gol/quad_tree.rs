@@ -32,7 +32,7 @@ pub fn join(a: Node, b: Node, c: Node, d: Node) -> Node {
 #[memoize]
 pub fn get_zero(k: usize) -> Node {
     if k == 0 {
-        // I wished there was a way to express this more succintly
+        // Ugly as fuck but what else could be done?
         Node::new(0, None, None, None, None, 0)
     } else {
         join(get_zero(k-1), get_zero(k-1), get_zero(k-1), get_zero(k-1))
