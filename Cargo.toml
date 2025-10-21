@@ -5,4 +5,5 @@ edition = "2021"
 
 [dependencies]
 cute = "0.3.0"
+memoize = "0.5.1"
 sdl2 = "0.38.0"

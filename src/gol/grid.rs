@@ -53,6 +53,7 @@ impl<const N: usize, const M: usize> Grid<N, M> {
             (-1,  1), (0,  1), (1,  1),
         ];
 
+        // We are modelling the grid as a toroid
         offsets.iter().map(|&(dx, dy)| {
             let grid_x = (x + dx).rem_euclid(m_p) as usize;
             let grid_y = (y + dy).rem_euclid(n_p) as usize;
