@@ -38,3 +38,15 @@ pub fn get_zero(k: usize) -> Node {
         join(get_zero(k-1), get_zero(k-1), get_zero(k-1), get_zero(k-1))
     }
 }
+
+// In the worst case, the grid in here is 2x2 so there's no risk of unwrapping a None value
+#[memoize]
+pub fn centre(m: Node) -> Node {
+    let z = get_zero(m.k - 1);
+    join(
+        join(z.clone(), z.clone(), z.clone(), m.a.unwrap()),
+        join(z.clone(), z.clone(), m.b.unwrap(), z.clone()),
+        join(z.clone(), m.c.unwrap(), z.clone(), z.clone()),
+        join(m.d.unwrap(), z.clone(), z.clone(), z.clone())
+    )
+}
