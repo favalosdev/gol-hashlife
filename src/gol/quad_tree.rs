@@ -152,3 +152,23 @@ pub fn life_4x4(m: Node) -> Node {
     );
     join(ad2, bc2, cb2, da2)
 }
+
+#[memoize]
+pub fn next_gen(m: Node) {
+    if m.n == 0 {
+        m.a.unwrap()
+    } else if m.k == 2 {
+        life_4x4(m)
+    } else {
+        let q1 = 0;
+        let q2 = 0;
+        let q3 = 0;
+        let q4 = 0;
+        let q5 = 0;
+        let q6 = 0;
+        let q7 = 0;
+        let q8 = 0;
+        let q9 = 0;
+        join()
+    }
+}
