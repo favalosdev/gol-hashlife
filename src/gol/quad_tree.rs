@@ -67,6 +67,12 @@ pub fn life(
         outer += node.unwrap().n;
     }
 
+    /*
+    The only way we can return an alive cell in here is if:
+    (1) The cell is alive and has exactly 2 alive neighbors.
+    (2) The cell is dead and has exactly 3 alive neighbors.
+    */
+
     if (e.unwrap().n == 1 && outer == 2) || outer == 3 {
         Node::new(0, 1, None, None, None, None)
     } else {
