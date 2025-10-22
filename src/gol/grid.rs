@@ -1,7 +1,36 @@
-pub struct Grid<const N: usize, const M: usize> {
-    grid: [[bool; M]; N]
+pub struct Grid {
+    pub rows: usize, // Number of rows
+    pub cols: usize, // Number of columns
+    pub cells: Vec<Vec<bool>>
 }
 
+impl Grid {
+    pub fn new(rows: usize, cols: usize) -> Self {
+        let mut cells: Vec<Vec<bool>> = vec![vec![true; cols]; rows];
+        Self { rows, cols, cells }
+    }
+
+    pub fn grow(&mut self, dx: usize, dy: usize) {
+        for i in 0..(self.rows) {
+            for _ in 0..dx {
+                self.cells[i].insert(0, false);
+                self.cells[i].push(false);
+            }
+        }
+
+        for _ in 0..dy {
+            let mut rear = vec![false; self.cols + 2*dx];
+            let mut front = vec![false; self.cols + 2*dx];
+            self.cells.insert(0, rear);
+            self.cells.push(front);
+        }
+
+        self.rows += 2*dy;
+        self.cols += 2*dx;
+    }
+}
+
+/*
 impl<const N: usize, const M: usize> Grid<N, M> {
     pub fn new() -> Self {
         let mut init: [[bool;M]; N] = [[false;M]; N];
@@ -82,3 +111,4 @@ impl<const N: usize, const M: usize> Grid<N, M> {
         self.grid[y][x]
     }
 }
+*/

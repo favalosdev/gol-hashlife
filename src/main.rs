@@ -32,12 +32,12 @@ fn main() {
 
     let mut canvas: Canvas<Window> = window.into_canvas().build().unwrap();
     let mut event_pump = sdl_context.event_pump().unwrap();
-    let mut grid = Grid::<N, M>::new();
+    let mut grid = Grid::new(N, M);
 
-    let draw_squares = |canvas: &mut Canvas<Window>, grid: &mut Grid::<N,M>| {
-        for y in 0..N {
-            for x in 0..M {
-                if grid.retrieve(x, y) {
+    let draw_squares = |canvas: &mut Canvas<Window>, grid: &mut Grid| {
+        for y in 0..(grid.rows) {
+            for x in 0..(grid.cols) {
+                if grid.cells[y][x] {
                     canvas.set_draw_color(Color::RGB(255, 255, 255));
                 } else {
                     canvas.set_draw_color(Color::RGB(0, 0, 0));
@@ -60,7 +60,7 @@ fn main() {
                 canvas.clear();
                 draw_squares(&mut canvas, &mut grid);
                 canvas.present();
-                grid.evolve();
+                // grid.evolve();
         }
 
         for event in event_pump.poll_iter() {
@@ -74,6 +74,7 @@ fn main() {
                 },
                 Event::KeyDown { scancode: Some(Scancode::S), .. } => {
                     println!("Zooming out!");
+                    grid.grow(1, 1);
                 },
                 _ => {}
             }
