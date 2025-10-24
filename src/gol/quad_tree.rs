@@ -1,5 +1,4 @@
 use memoize::memoize;
-
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct Node {
     k: usize,
