@@ -1,46 +1,38 @@
+use std::collections::HashSet;
+
 pub struct Grid<const N: usize, const M: usize> {
-    grid: [[bool; M]; N]
+    cells: HashSet<(i32, i32)>, // We will opt for an (x, y) format
 }
 
 impl<const N: usize, const M: usize> Grid<N, M> {
     pub fn new() -> Self {
-        let mut init: [[bool;M]; N] = [[false;M]; N];
+        let mut cells: HashSet<(i32, i32)> = HashSet::new();
 
-        // Our way of initializing the seed
-        init[15][18] = true;
-        init[15][19] = true;
-        init[15][20] = true;
-        init[14][18] = true;
-        init[13][19] = true;
+        cells.insert((18, 15));
+        cells.insert((19, 15));
+        cells.insert((20, 15));
+        cells.insert((18, 14));
+        cells.insert((19, 13));
 
-        init[25][9] = true;
-        init[25][10] = true;
-        init[26][10] = true;
-        init[27][9] = true;
-        init[26][8] = true;
+        cells.insert((9, 25));
+        cells.insert((10, 25));
+        cells.insert((10, 26));
+        cells.insert((9, 27));
+        cells.insert((8, 26));
 
-        init[10][11] = true;
-        init[10][12] = true;
-        init[11][12] = true;
-        init[12][12] = true;
-        init[11][13] = true;
+        cells.insert((11, 10));
+        cells.insert((12, 10));
+        cells.insert((12, 11));
+        cells.insert((12, 12));
+        cells.insert((13, 11));
 
-        Self {
-            grid: init
-        }
+        Self { cells }
     }
 
     pub fn evolve(&mut self) {
-        let mut copy: [[bool;M]; N] = [[false;M]; N];
-
-        for y in 0..N {
-            for x in 0..M {
-                let value = self.transition(x, y);
-                copy[y][x] = value;
-            }
+        for coords_ref in self.cells.iter() {
+            cells.insert
         }
-
-        self.grid = copy;
     }
 
     fn count_alive_neighbors(&self, x: isize, y: isize) -> usize {
