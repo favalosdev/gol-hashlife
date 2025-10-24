@@ -14,8 +14,9 @@ mod gol;
 use gol::grid::Grid;
 
 const WINDOW_HEIGHT: u32 = 600;
-const WINDOW_WIDTH: u32 = 800;
-const SQUARE_FACTOR: u8 = 10;
+const WINDOW_WIDTH: u32 = 600;
+
+const SQUARE_FACTOR: u8 = 5;
 const SQUARE_SIZE: usize = (2 * SQUARE_FACTOR) as usize;
 const N: usize = (WINDOW_HEIGHT / (SQUARE_SIZE as u32)) as usize;
 const M: usize = (WINDOW_WIDTH / (SQUARE_SIZE as u32)) as usize;
