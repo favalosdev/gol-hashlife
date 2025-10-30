@@ -2,4 +2,4 @@
 
 Very simple implementation of Conway's Game of Life.
 
-Just hit "cargo run" raw and you are done.
+Run ```cargo run```and you are done.
