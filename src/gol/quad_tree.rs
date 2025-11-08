@@ -7,7 +7,7 @@ pub struct Node {
     a: Box<Option<Node>>,
     b: Box<Option<Node>>,
     c: Box<Option<Node>>,
-    d: Box<Option<Node>>,
+    d: Box<Option<Node>>
 }
 
 impl Node {
@@ -23,10 +23,19 @@ impl Node {
     }
 }
 
-#[memoize]
-pub fn join(a: Node, b: Node, c: Node, d: Node) -> Node {
-    let n = a.n + b.n + c.n + d.n;
-     Node::new(a.k + 1, n, Some(a), Some(b), Some(c), Some(d))
+pub fn join(a: &Option<Node>, b: &Option<Node>, c: &Option<Node>, d: &Option<Node>) -> Node {
+    let ar = a.as_ref().unwrap();
+    let br = b.as_ref().unwrap();
+    let cr = c.as_ref().unwrap();
+    let dr = d.as_ref().unwrap();
+    
+    let an = ar.n;
+    let bn = br.n;
+    let cn = cr.n;
+    let dn = dr.n;
+    let n = an + bn + cn + dn;
+    // We can later on see whether this performs or not
+    Node::new(ar.k + 1, n, Some(ar.clone()), Some(br.clone()),Some(cr.clone()), Some(dr.clone()))
 }
 
 #[memoize]
@@ -34,20 +43,26 @@ pub fn get_zero(k: usize) -> Node {
     if k == 0 {
         Node::new(0, 0, None, None, None, None)
     } else {
-        join(get_zero(k-1), get_zero(k-1), get_zero(k-1), get_zero(k-1))
+        let z = Some(get_zero(k-1));
+        join(&z, &z,&z, &z)
     }
 }
 
 // In the worst case, the grid in here is 2x2 so there's no risk of unwrapping a None value
 #[memoize]
 pub fn centre(m: Node) -> Node {
-    let z = get_zero(m.k - 1);
-    join(
-        join(z.clone(), z.clone(), z.clone(), m.a.unwrap()),
-        join(z.clone(), z.clone(), m.b.unwrap(), z.clone()),
-        join(z.clone(), m.c.unwrap(), z.clone(), z.clone()),
-        join(m.d.unwrap(), z.clone(), z.clone(), z.clone())
-    )
+    let z = &Some(get_zero(m.k - 1));
+    let a = m.a.as_ref();
+    let b = m.b.as_ref();
+    let c = m.c.as_ref();
+    let d = m.d.as_ref();
+
+    let j1 = &Some(join(z, z, z, a));
+    let j2 = &Some(join(z, z, b, z));
+    let j3 = &Some(join(z, c, z, z));
+    let j4 = &Some(join(d, z, z, z));
+
+    join(j1, j2, j3, j4)
 }
 
 pub fn life(
@@ -66,12 +81,6 @@ pub fn life(
     for node in neighbors.iter() {
         outer += node.unwrap().n;
     }
-
-    /*
-    The only way we can return an alive cell in here is if:
-    (1) The cell is alive and has exactly 2 alive neighbors.
-    (2) The cell is dead and has exactly 3 alive neighbors.
-    */
 
     if (e.unwrap().n == 1 && outer == 2) || outer == 3 {
         Node::new(0, 1, None, None, None, None)
@@ -106,7 +115,7 @@ pub fn life_4x4(m: Node) -> Node {
     let dc = d.c.as_ref();
     let dd = d.d.as_ref();
 
-    let ad2 = life(
+    let ad2 = &Some(life(
         aa.as_ref(),
         ab.as_ref(),
         ba.as_ref(),
@@ -116,8 +125,8 @@ pub fn life_4x4(m: Node) -> Node {
         ca.as_ref(),
         cb.as_ref(),
         da.as_ref()
-    );
-    let bc2 = life(
+    ));
+    let bc2 = &Some(life(
         ab.as_ref(),
         ba.as_ref(),
         bb.as_ref(),
@@ -127,8 +136,8 @@ pub fn life_4x4(m: Node) -> Node {
         cb.as_ref(),
         da.as_ref(),
         db.as_ref()
-    );
-    let cb2 = life(
+    ));
+    let cb2 = &Some(life(
         ac.as_ref(),
         ad.as_ref(),
         bc.as_ref(),
@@ -138,8 +147,8 @@ pub fn life_4x4(m: Node) -> Node {
         cc.as_ref(),
         cd.as_ref(),
         dc.as_ref()
-    );
-    let da2 = life(
+    ));
+    let da2 = &Some(life(
         ad.as_ref(),
         bc.as_ref(),
         bd.as_ref(),
@@ -149,26 +158,104 @@ pub fn life_4x4(m: Node) -> Node {
         cd.as_ref(),
         dc.as_ref(),
         dd.as_ref()
-    );
+    ));
     join(ad2, bc2, cb2, da2)
 }
 
-#[memoize]
-pub fn next_gen(m: Node) {
+pub fn next_gen(m: Node) -> Node {
     if m.n == 0 {
         m.a.unwrap()
     } else if m.k == 2 {
         life_4x4(m)
     } else {
-        let q1 = 0;
-        let q2 = 0;
-        let q3 = 0;
-        let q4 = 0;
-        let q5 = 0;
-        let q6 = 0;
-        let q7 = 0;
-        let q8 = 0;
-        let q9 = 0;
-        join()
+        let a = m.a.unwrap();
+        let aa = &Some(a.a.unwrap());
+        let ab = &Some(a.b.unwrap());
+        let ac = &Some(a.c.unwrap());
+        let ad = &Some(a.d.unwrap());
+
+        let b = m.b.unwrap();
+        let ba = &Some(b.a.unwrap());
+        let bb = &Some(b.b.unwrap());
+        let bc = &Some(b.c.unwrap());
+        let bd = &Some(b.d.unwrap());
+
+        let c = m.c.unwrap();
+        let ca = &Some(c.a.unwrap());
+        let cb = &Some(c.b.unwrap());
+        let cc = &Some(c.c.unwrap());
+        let cd = &Some(c.d.unwrap());
+
+        let d = m.d.unwrap();
+        let da = &Some(d.a.unwrap());
+        let db = &Some(d.b.unwrap());
+        let dc = &Some(d.c.unwrap());
+        let dd = &Some(d.d.unwrap());
+
+        let c1 = next_gen(join(aa, ab, ac, ad));
+        let c2 = next_gen(join(ab, ba, ad, bc));
+        let c3 = next_gen(join(ba, bb,bc, bd));
+        let c4 = next_gen(join(ac, ad, ca, cb));
+        let c5 = next_gen(join(ad, bc, cb, da));
+        let c6 = next_gen(join(bc, bd, da, db));
+        let c7 = next_gen(join(ca, cb, cc, cd));
+        let c8 = next_gen(join(cb, da, cd, dc));
+        let c9 = next_gen(join(da, db, dc, dd));
+
+        let j1 = &Some(join(c1.d.as_ref(), c2.c.as_ref(), c4.b.as_ref(), c5.a.as_ref()));
+        let j2 = &Some(join(c2.d.as_ref(), c3.c.as_ref(), c5.b.as_ref(), c6.a.as_ref()));
+        let j3 = &Some(join(c4.d.as_ref(), c5.c.as_ref(), c7.b.as_ref(), c8.a.as_ref()));
+        let j4 = &Some(join(c5.d.as_ref(), c6.c.as_ref(), c8.b.as_ref(), c9.a.as_ref()));
+
+        join(j1, j2, j3, j4)
+    }
+}
+
+pub fn successor(m: Node) -> Node {
+    if m.n == 0 {
+        m.a.unwrap()
+    } else if m.k == 2 {
+        life_4x4(m)
+    } else {
+        let a = m.a.unwrap();
+        let aa = &Some(a.a.unwrap());
+        let ab = &Some(a.b.unwrap());
+        let ac = &Some(a.c.unwrap());
+        let ad = &Some(a.d.unwrap());
+
+        let b = m.b.unwrap();
+        let ba = &Some(b.a.unwrap());
+        let bb = &Some(b.b.unwrap());
+        let bc = &Some(b.c.unwrap());
+        let bd = &Some(b.d.unwrap());
+
+        let c = m.c.unwrap();
+        let ca = &Some(c.a.unwrap());
+        let cb = &Some(c.b.unwrap());
+        let cc = &Some(c.c.unwrap());
+        let cd = &Some(c.d.unwrap());
+
+        let d = m.d.unwrap();
+        let da = &Some(d.a.unwrap());
+        let db = &Some(d.b.unwrap());
+        let dc = &Some(d.c.unwrap());
+        let dd = &Some(d.d.unwrap());
+
+        let c1 = successor(join(aa, ab, ac, ad));
+        let c2 = successor(join(ab, ba, ad, bc));
+        let c3 = successor(join(ba, bb,bc, bd));
+        let c4 = successor(join(ac, ad, ca, cb));
+        let c5 = successor(join(ad, bc, cb, da));
+        let c6 = successor(join(bc, bd, da, db));
+        let c7 = successor(join(ca, cb, cc, cd));
+        let c8 = successor(join(cb, da, cd, dc));
+        let c9 = successor(join(da, db, dc, dd));
+
+        let j1 = &Some(successor(join(c1.d.as_ref(), c2.c.as_ref(), c4.b.as_ref(), c5.a.as_ref())));
+        let j2 = &Some(successor(join(c2.d.as_ref(), c3.c.as_ref(), c5.b.as_ref(), c6.a.as_ref())));
+        let j3 = &Some(successor(join(c4.d.as_ref(), c5.c.as_ref(), c7.b.as_ref(), c8.a.as_ref())));
+        let j4 = &Some(successor(join(c5.d.as_ref(), c6.c.as_ref(), c8.b.as_ref(), c9.a.as_ref())));
+
+        join(j1, j2, j3, j4)
     }
 }
