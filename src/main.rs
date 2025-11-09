@@ -37,11 +37,12 @@ fn main() {
     let draw_squares = |canvas: &mut Canvas<Window>, grid: &mut Grid::<N,M>| {
         for y in 0..N {
             for x in 0..M {
-                if grid.retrieve(x, y) {
+                if grid.is_alive(x, y) {
                     canvas.set_draw_color(Color::RGB(255, 255, 255));
                 } else {
                     canvas.set_draw_color(Color::RGB(0, 0, 0));
                 }
+                // In here
                 let a: i32 = (x * SQUARE_SIZE) as i32;
                 let b: i32 = (y * SQUARE_SIZE) as i32;
                 let _ = canvas.fill_rect(Rect::new(a, b, SQUARE_SIZE as u32,SQUARE_SIZE as u32));
@@ -51,6 +52,12 @@ fn main() {
 
     let mut last_game_tick = Instant::now();
     let game_interval = Duration::from_nanos(1_000_000_000 / GAME_FREQ);
+
+    /*
+    draw_squares(&mut canvas, &mut grid);
+    canvas.present();
+    grid.evolve();
+    */
 
     'running: loop {
         let  now = Instant::now();
@@ -75,6 +82,14 @@ fn main() {
                 Event::KeyDown { scancode: Some(Scancode::S), .. } => {
                     println!("Zooming out!");
                 },
+                /*
+                Event::KeyDown { scancode: Some(Scancode::E), .. } => {
+                    grid.evolve();
+                    canvas.clear();
+                    draw_squares(&mut canvas, &mut grid);
+                    canvas.present();
+                },
+                */
                 _ => {}
             }
             ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
