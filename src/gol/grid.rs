@@ -1,30 +1,30 @@
-use std::collections::HashMap;
+use std::collections::HashSet;
 
 pub struct Grid<const R: usize, const C: usize> {
-    cells: HashMap<(usize, usize), bool> // IMPORTANT: this uses (x,y) format
+    pub cells: HashSet<(usize, usize)> // IMPORTANT: this uses (x,y) format
 }
 
 impl<const R: usize, const C: usize> Grid<R, C> {
     pub fn new() -> Self {
-        let mut init: HashMap<(usize, usize), bool> = HashMap::new();
+        let mut init: HashSet<(usize, usize)> = HashSet::new();
 
-        init.insert((18,15), true);
-        init.insert((19,15), true);
-        init.insert((20,15), true);
-        init.insert((18,14), true);
-        init.insert((19,13), true);
+        init.insert((18,15));
+        init.insert((19,15));
+        init.insert((20,15));
+        init.insert((18,14));
+        init.insert((19,13));
 
-        init.insert((9,25), true);
-        init.insert((10,25), true);
-        init.insert((10,26), true);
-        init.insert((9,27), true);
-        init.insert((8,26), true);
+        init.insert((9,25));
+        init.insert((10,25));
+        init.insert((10,26));
+        init.insert((9,27));
+        init.insert((8,26));
 
-        init.insert((11,10), true);
-        init.insert((12, 10), true);
-        init.insert((12, 11), true);
-        init.insert((12, 12), true);
-        init.insert((13, 11), true);
+        init.insert((11,10));
+        init.insert((12, 10));
+        init.insert((12, 11));
+        init.insert((12, 12));
+        init.insert((13, 11));
 
         Self {
             cells: init
@@ -40,7 +40,7 @@ impl<const R: usize, const C: usize> Grid<R, C> {
 
                 if will_be_alive {
                     if !self.is_alive(x, y) {
-                        copy.insert((x,y), true);
+                        copy.insert((x,y));
                     } 
                 } else {
                     if self.is_alive(x, y) {
