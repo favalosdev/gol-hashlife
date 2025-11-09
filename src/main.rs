@@ -35,7 +35,7 @@ fn main() {
     let mut event_pump = sdl_context.event_pump().unwrap();
     let mut grid = Grid::<R, C>::new();
 
-    let mut screen = ScreenState::new(1, 0, 0);
+    let screen = ScreenState::new(1, 0, 0);
 
     /*
      The way I imagine it is as follows:
@@ -46,9 +46,12 @@ fn main() {
      */
 
     let draw_squares = |canvas: &mut Canvas<Window>, grid: &Grid::<R,C>, screen: &ScreenState| {
-        canvas.set_draw_color(Color::RGB(255,255, 255));
+        canvas.set_draw_color(Color::RGB(0, 0, 0));
+        canvas.clear();
+        canvas.set_draw_color(Color::RGB(255, 255, 255));
         for (x_w,y_w) in grid.cells.iter() {
-            let (x_s, y_s)= screen.world_to_screen(*x_w, *y_w, SQUARE_SIZE as u32);
+            println!("{} {}", x_w, y_w);
+            let (x_s, y_s)= screen.world_to_screen(*x_w, *y_w, SQUARE_SIZE);
             let _ = canvas.fill_rect(Rect::new(x_s, y_s,SQUARE_SIZE as u32,SQUARE_SIZE as u32));
         }
     };
@@ -57,9 +60,8 @@ fn main() {
     let mut last_game_tick = Instant::now();
     let game_interval = Duration::from_nanos(1_000_000_000 / GAME_FREQ);
     */
-    draw_squares(&mut canvas, &mut grid, &screen);
+    draw_squares(&mut canvas, &grid, &screen);
     canvas.present();
-    grid.evolve();
     'running: loop {
         /*
         let  now = Instant::now();
@@ -67,7 +69,7 @@ fn main() {
         if now.duration_since(last_game_tick) >= game_interval {
                 last_game_tick = now;
                 canvas.clear();
-                draw_squares(&mut canvas, &mut grid, &screen);
+                draw_squares(&mut canvas, &grid, &screen);
                 canvas.present();
                 grid.evolve();
         }
@@ -87,13 +89,12 @@ fn main() {
                 },
                 Event::KeyDown { scancode: Some(Scancode::E), .. } => {
                     grid.evolve();
-                    canvas.clear();
                     draw_squares(&mut canvas, &mut grid, &screen);
                     canvas.present();
                 },
                 _ => {}
             }
-            ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+            std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
         }
     }
 }

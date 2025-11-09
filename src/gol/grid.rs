@@ -63,7 +63,7 @@ impl<const R: usize, const C: usize> Grid<R, C> {
         offsets.iter().map(|&(dx, dy)| {
             let grid_x = (x + dx).rem_euclid(C as isize) as usize;
             let grid_y = (y + dy).rem_euclid(R as isize) as usize;
-            (self.is_alive(grid_x, grid_y) as u8) as usize
+            self.is_alive(grid_x, grid_y) as usize
         })
         .sum()
     }

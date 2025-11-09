@@ -13,9 +13,9 @@ impl ScreenState {
         }
     }
 
-    pub fn world_to_screen(&self, x_w: usize, y_w: usize, square_size: u32) -> (i32, i32) {
-        let x_s: i32 = (((x_w as u32) * square_size) as i32 * self.scale) + self.offset_x;
-        let y_s: i32 = (((y_w as u32) * square_size) as i32 * self.scale) + self.offset_y;
+    pub fn world_to_screen(&self, x_w: usize, y_w: usize, square_size: usize) -> (i32, i32) {
+        let x_s = (x_w * square_size) as i32;
+        let y_s = (y_w * square_size) as i32;
         (x_s, y_s)
     }
 }
