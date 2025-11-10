@@ -9,7 +9,7 @@ impl Camera {
         Self { zoom, x, y }
     }
 
-    pub fn from_world_coords(&self, x_w: usize, y_w: usize) -> (i32, i32) {
+    pub fn from_world_coords(&self, x_w: isize, y_w: isize) -> (i32, i32) {
         let x_s = ((x_w as i32) - self.x) * self.zoom;
         let y_s = ((y_w as i32) - self.y) * self.zoom;
         (x_s, y_s)
