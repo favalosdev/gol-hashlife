@@ -54,15 +54,12 @@ fn main() {
         canvas.present();
     };
 
-    /*
     let mut last_game_tick = Instant::now();
     let game_interval = Duration::from_nanos(1_000_000_000 / GAME_FREQ);
-    */
 
-    draw_squares(&mut canvas, &grid, &camera);
+    // draw_squares(&mut canvas, &grid, &camera);
 
     'running: loop {
-        /*
         let  now = Instant::now();
 
         if now.duration_since(last_game_tick) >= game_interval {
@@ -72,7 +69,6 @@ fn main() {
                 canvas.present();
                 grid.evolve();
         }
-        */
 
         for event in event_pump.poll_iter() {
             match event {
@@ -106,10 +102,12 @@ fn main() {
                     }
                     // draw_squares(&mut canvas, &mut grid, &camera);
                 },
+                /*
                 Event::KeyDown { scancode: Some(Scancode::E), .. } => {
                     grid.evolve();
                     draw_squares(&mut canvas, &mut grid, &camera);
                 },
+                */
                 _ => {}
             }
             std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
