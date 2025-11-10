@@ -12,11 +12,11 @@ use std::time::{Duration,Instant};
 
 mod gol;
 use gol::grid::Grid;
-use gol::screen::ScreenState;
+use gol::camera::Camera;
 
 const WINDOW_HEIGHT: u32 = 600;
 const WINDOW_WIDTH: u32 = 800;
-const SQUARE_FACTOR: u8 = 10;
+const SQUARE_FACTOR: u8 = 5;
 const SQUARE_SIZE: usize = (2 * SQUARE_FACTOR) as usize;
 const R: usize = (WINDOW_HEIGHT / (SQUARE_SIZE as u32)) as usize;
 const C: usize = (WINDOW_WIDTH / (SQUARE_SIZE as u32)) as usize;
@@ -35,45 +35,42 @@ fn main() {
     let mut event_pump = sdl_context.event_pump().unwrap();
     let mut grid = Grid::<R, C>::new();
 
-    let screen = ScreenState::new(1, 0, 0);
+    let mut camera= Camera::new(5, 400, 600);
 
-    /*
-     The way I imagine it is as follows:
-     (1) We render every piece of the world that's currently in the viewport.
-     * Per each object, we determine whether at least one vertex is included in the screen.
-     * (We would need to perform world_to_screen conversion)
-     * If at least one vertex is included, render the whole object.
-     */
-
-    let draw_squares = |canvas: &mut Canvas<Window>, grid: &Grid::<R,C>, screen: &ScreenState| {
+    let draw_squares = |canvas: &mut Canvas<Window>, grid: &Grid::<R,C>, camera: &Camera| {
         canvas.set_draw_color(Color::RGB(0, 0, 0));
         canvas.clear();
         canvas.set_draw_color(Color::RGB(255, 255, 255));
-        for (x_w,y_w) in grid.cells.iter() {
-            println!("{} {}", x_w, y_w);
-            let (x_s, y_s)= screen.world_to_screen(*x_w, *y_w, SQUARE_SIZE);
-            let _ = canvas.fill_rect(Rect::new(x_s, y_s,SQUARE_SIZE as u32,SQUARE_SIZE as u32));
+
+        for (x,y) in grid.cells.iter() {
+            let (xo_w, yo_w) = (*x * SQUARE_SIZE, *y * SQUARE_SIZE);
+            let (xf_w, yf_w) = (xo_w + SQUARE_SIZE, yo_w + SQUARE_SIZE);
+
+            let (xo_s, yo_s)= camera.from_world_coords(xo_w, yo_w);
+            let (xf_s, _) = camera.from_world_coords(xf_w, 0);
+            let (_, yf_s) = camera.from_world_coords(0, yf_w);
+
+            let _ = canvas.fill_rect(Rect::new(xo_s, yo_s, (xf_s - xo_s) as u32, (yf_s - yo_s) as u32));
         }
     };
 
-    /*
     let mut last_game_tick = Instant::now();
     let game_interval = Duration::from_nanos(1_000_000_000 / GAME_FREQ);
-    */
+
+    /*
     draw_squares(&mut canvas, &grid, &screen);
     canvas.present();
+    */
     'running: loop {
-        /*
         let  now = Instant::now();
 
         if now.duration_since(last_game_tick) >= game_interval {
                 last_game_tick = now;
                 canvas.clear();
-                draw_squares(&mut canvas, &grid, &screen);
+                draw_squares(&mut canvas, &grid, &camera);
                 canvas.present();
                 grid.evolve();
         }
-        */
 
         for event in event_pump.poll_iter() {
             match event {
@@ -81,17 +78,35 @@ fn main() {
                 Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
                     break 'running
                 },
+                Event::KeyDown { scancode: Some(Scancode::W), .. } => {
+                    camera.y -= 1;
+                },
                 Event::KeyDown { scancode: Some(Scancode::A), .. } => {
-                    println!("Zooming in!");
+                    camera.x -= 1;
                 },
                 Event::KeyDown { scancode: Some(Scancode::S), .. } => {
-                    println!("Zooming out!");
+                    camera.y += 1;
                 },
+                Event::KeyDown { scancode: Some(Scancode::D), .. } => {
+                    camera.x += 1;
+                },
+                // Zoom in
+                Event::KeyDown { scancode: Some(Scancode::I), .. } => {
+                    camera.zoom += 1;
+                },
+                // Zoom out
+                Event::KeyDown { scancode: Some(Scancode::O), .. } => {
+                    if camera.zoom > 1 {
+                        camera.zoom -= 1;
+                    }
+                },
+                /*
                 Event::KeyDown { scancode: Some(Scancode::E), .. } => {
                     grid.evolve();
                     draw_squares(&mut canvas, &mut grid, &screen);
                     canvas.present();
                 },
+                */
                 _ => {}
             }
             std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
