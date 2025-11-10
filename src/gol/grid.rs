@@ -38,8 +38,8 @@ impl Grid {
     pub fn evolve(&mut self) {
         let mut copy = self.cells.clone();
 
-        for x in -self.range_x..self.range_x {
-            for y in -self.range_y..self.range_y {
+        for x in (-self.range_x)+1..self.range_x {
+            for y in (-self.range_y)+1..self.range_y {
                 let will_be_alive = self.transition(x,y);
 
                 if will_be_alive {
@@ -69,11 +69,11 @@ impl Grid {
             let mut y_f = y + dy;
 
             if x_f.abs() == self.range_x {
-                x_f = x * (-dx.signum());
+                x_f = x.abs() * (-1) * dx.signum();
             }
 
             if y_f.abs() == self.range_y {
-                y_f = y * (-dy.signum());
+                y_f = y.abs() * (-1) * dy.signum();
             }
 
             self.is_alive(x_f, y_f) as usize
