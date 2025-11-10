@@ -64,7 +64,7 @@ impl Grid {
     }
 
     pub fn transition(&self, x: isize, y: isize) -> bool {
-        let a = self.count_alive_neighbors(x as isize, y as isize);
+        let a = self.count_alive_neighbors(x, y);
 
         if self.is_alive(x, y) {
             if a < 2 || a > 3 {
