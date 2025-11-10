@@ -47,9 +47,10 @@ fn main() {
             let (xo_s, yo_s)= camera.from_world_coords(xo_w, yo_w);
             let (xf_s, _) = camera.from_world_coords(xf_w, 0);
             let (_, yf_s) = camera.from_world_coords(0, yf_w);
-
-            let _ = canvas.fill_rect(Rect::new(xo_s + (WINDOW_WIDTH / 2) as i32, yo_s + (WINDOW_HEIGHT / 2) as i32, (xf_s - xo_s) as u32, (yf_s - yo_s) as u32));
+            let to_draw = Rect::new(xo_s + (WINDOW_WIDTH / 2) as i32, yo_s + (WINDOW_HEIGHT / 2) as i32, (xf_s - xo_s) as u32, (yf_s - yo_s) as u32);
+            let _ = canvas.fill_rect(to_draw);
         }
+
         canvas.present();
     };
 
