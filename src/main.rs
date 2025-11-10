@@ -16,6 +16,7 @@ use gol::camera::Camera;
 const WINDOW_HEIGHT: u32 = 600;
 const WINDOW_WIDTH: u32 = 800;
 const GAME_FREQ: u64 = 20;
+const ZOOM: i32 = 20;
 
 fn main() {
     let sdl_context = sdl2::init().unwrap();
@@ -30,7 +31,7 @@ fn main() {
     let mut event_pump = sdl_context.event_pump().unwrap();
     let mut grid = Grid::new();
 
-    let mut camera= Camera::new(50, 0, 0);
+    let mut camera= Camera::new(ZOOM, 0, 0);
 
     let draw_squares = |canvas: &mut Canvas<Window>, grid: &Grid, camera: &Camera| {
         canvas.set_draw_color(Color::RGB(0,0,0));
