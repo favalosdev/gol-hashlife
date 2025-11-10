@@ -9,6 +9,7 @@ use sdl2::event::Event;
 use sdl2::keyboard::{Keycode,Scancode};
 use sdl2::rect::Rect;
 use std::time::{Duration,Instant};
+
 mod gol;
 use gol::grid::Grid;
 use gol::camera::Camera;
