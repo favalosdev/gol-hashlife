@@ -16,8 +16,8 @@ use gol::camera::Camera;
 
 const WINDOW_HEIGHT: u32 = 600;
 const WINDOW_WIDTH: u32 = 800;
-const SQUARE_FACTOR: u8 = 3;
-const SQUARE_SIZE: isize = (2 * SQUARE_FACTOR) as isize;
+const SQUARE_FACTOR: isize = 3;
+const SQUARE_SIZE: isize = 2 * SQUARE_FACTOR;
 const GAME_FREQ: u64 = 20;
 
 fn main() {
