@@ -9,15 +9,12 @@ use sdl2::event::Event;
 use sdl2::keyboard::{Keycode,Scancode};
 use sdl2::rect::Rect;
 use std::time::{Duration,Instant};
-
 mod gol;
 use gol::grid::Grid;
 use gol::camera::Camera;
 
 const WINDOW_HEIGHT: u32 = 600;
 const WINDOW_WIDTH: u32 = 800;
-const SQUARE_FACTOR: isize = 3;
-const SQUARE_SIZE: isize = 2 * SQUARE_FACTOR;
 const GAME_FREQ: u64 = 20;
 
 fn main() {
@@ -33,7 +30,7 @@ fn main() {
     let mut event_pump = sdl_context.event_pump().unwrap();
     let mut grid = Grid::new();
 
-    let mut camera= Camera::new(5, 0, 0);
+    let mut camera= Camera::new(50, 0, 0);
 
     let draw_squares = |canvas: &mut Canvas<Window>, grid: &Grid, camera: &Camera| {
         canvas.set_draw_color(Color::RGB(0,0,0));
@@ -41,8 +38,8 @@ fn main() {
         canvas.set_draw_color(Color::RGB(255, 255, 255));
 
         for (x,y) in grid.cells.iter() {
-            let (xo_w, yo_w) = (*x * SQUARE_SIZE, -*y * SQUARE_SIZE);
-            let (xf_w, yf_w) = (xo_w + SQUARE_SIZE, yo_w + SQUARE_SIZE);
+            let (xo_w, yo_w) = (*x,-*y);
+            let (xf_w, yf_w) = (xo_w + 1, yo_w + 1);
 
             let (xo_s, yo_s) = camera.from_world_coords(xo_w, yo_w);
             let (xf_s, _) = camera.from_world_coords(xf_w, 0);
