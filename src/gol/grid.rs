@@ -1,7 +1,9 @@
 use std::collections::HashSet;
 
 pub struct Grid {
-    pub cells: HashSet<(isize, isize)> // IMPORTANT: this uses (x,y) format
+    pub cells: HashSet<(isize, isize)>, // IMPORTANT: this uses (x,y) format
+    range_x: isize,
+    range_y: isize
 }
 
 impl Grid {
@@ -11,8 +13,8 @@ impl Grid {
         cells.insert((0,2));
         cells.insert((1,2));
         cells.insert((2,2));
-        cells.insert((0,1));
-        cells.insert((1,0));
+        cells.insert((2,3));
+        cells.insert((1,4));
 
         cells.insert((-9,12));
         cells.insert((-8,12));
@@ -20,33 +22,38 @@ impl Grid {
         cells.insert((-9,14));
         cells.insert((-10,13));
 
-        cells.insert((-7,-3));
         cells.insert((-6,-3));
         cells.insert((-6,-2));
         cells.insert((-6,-1));
-        cells.insert((-5,-2));
+        cells.insert((-7,-1));
+        cells.insert((-8,-2));
 
         Self {
-            cells
+            cells,
+            range_x: 100,
+            range_y: 100
         }
     }
 
     pub fn evolve(&mut self) {
         let mut copy = self.cells.clone();
 
-        for (x,y) in self.cells.iter() {
-            let will_be_alive = self.transition(*x,*y);
+        for x in -self.range_x..self.range_x {
+            for y in -self.range_y..self.range_y {
+                let will_be_alive = self.transition(x,y);
 
-            if will_be_alive {
-                if !self.is_alive(*x,*y) {
-                    copy.insert((*x,*y));
-                } 
-            } else {
-                if self.is_alive(*x,*y) {
-                    copy.remove(&(*x,*y));
+                if will_be_alive {
+                    if !self.is_alive(x,y) {
+                        copy.insert((x,y));
+                    } 
+                } else {
+                    if self.is_alive(x,y) {
+                        copy.remove(&(x,y));
+                    }
                 }
             }
         }
+
         self.cells = copy;
     }
 
@@ -64,15 +71,15 @@ impl Grid {
     }
 
     pub fn transition(&self, x: isize, y: isize) -> bool {
-        let a = self.count_alive_neighbors(x, y);
+        let n = self.count_alive_neighbors(x, y);
 
         if self.is_alive(x, y) {
-            if a < 2 || a > 3 {
+            if n < 2 || n > 3 {
                 return false;
             }
         } 
 
-        if a == 3 {
+        if n == 3 {
             return true;
         }
 
