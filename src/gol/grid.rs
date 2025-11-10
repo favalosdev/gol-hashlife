@@ -30,8 +30,8 @@ impl Grid {
 
         Self {
             cells,
-            range_x: 100,
-            range_y: 100
+            range_x: 20,
+            range_y: 20 
         }
     }
 
@@ -65,7 +65,18 @@ impl Grid {
         ];
 
         offsets.iter().map(|&(dx, dy)| {
-            self.is_alive(x + dx, y + dy) as usize
+            let mut x_f= x + dx;
+            let mut y_f = y + dy;
+
+            if x_f.abs() == self.range_x {
+                x_f = x * (-dx.signum());
+            }
+
+            if y_f.abs() == self.range_y {
+                y_f = y * (-dy.signum());
+            }
+
+            self.is_alive(x_f, y_f) as usize
         })
         .sum()
     }
