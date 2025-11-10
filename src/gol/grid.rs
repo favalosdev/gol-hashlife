@@ -1,71 +1,72 @@
-pub struct Grid<const N: usize, const M: usize> {
-    grid: [[bool; M]; N]
+use std::collections::HashSet;
+
+pub struct Grid {
+    pub cells: HashSet<(isize, isize)> // IMPORTANT: this uses (x,y) format
 }
 
-impl<const N: usize, const M: usize> Grid<N, M> {
+impl Grid {
     pub fn new() -> Self {
-        let mut init: [[bool;M]; N] = [[false;M]; N];
+        let mut cells: HashSet<(isize, isize)> = HashSet::new();
 
-        // Our way of initializing the seed
-        init[15][18] = true;
-        init[15][19] = true;
-        init[15][20] = true;
-        init[14][18] = true;
-        init[13][19] = true;
+        cells.insert((0,2));
+        cells.insert((1,2));
+        cells.insert((2,2));
+        cells.insert((0,1));
+        cells.insert((1,0));
 
-        init[25][9] = true;
-        init[25][10] = true;
-        init[26][10] = true;
-        init[27][9] = true;
-        init[26][8] = true;
+        cells.insert((-9,12));
+        cells.insert((-8,12));
+        cells.insert((-8,13));
+        cells.insert((-9,14));
+        cells.insert((-10,13));
 
-        init[10][11] = true;
-        init[10][12] = true;
-        init[11][12] = true;
-        init[12][12] = true;
-        init[11][13] = true;
+        cells.insert((-7,-3));
+        cells.insert((-6,-3));
+        cells.insert((-6,-2));
+        cells.insert((-6,-1));
+        cells.insert((-5,-2));
 
         Self {
-            grid: init
+            cells
         }
     }
 
     pub fn evolve(&mut self) {
-        let mut copy: [[bool;M]; N] = [[false;M]; N];
+        let mut copy = self.cells.clone();
 
-        for y in 0..N {
-            for x in 0..M {
-                let value = self.transition(x, y);
-                copy[y][x] = value;
+        for (x,y) in self.cells.iter() {
+            let will_be_alive = self.transition(*x,*y);
+
+            if will_be_alive {
+                if !self.is_alive(*x,*y) {
+                    copy.insert((*x,*y));
+                } 
+            } else {
+                if self.is_alive(*x,*y) {
+                    copy.remove(&(*x,*y));
+                }
             }
         }
-
-        self.grid = copy;
+        self.cells = copy;
     }
 
     fn count_alive_neighbors(&self, x: isize, y: isize) -> usize {
-        let m_p = M as isize;
-        let n_p = N as isize;
-
         let offsets = [
             (-1, -1), (0, -1), (1, -1),
             (-1,  0),          (1,  0),
             (-1,  1), (0,  1), (1,  1),
         ];
 
-        // We are modelling the grid as a toroid
         offsets.iter().map(|&(dx, dy)| {
-            let grid_x = (x + dx).rem_euclid(m_p) as usize;
-            let grid_y = (y + dy).rem_euclid(n_p) as usize;
-            self.grid[grid_y][grid_x] as usize
+            self.is_alive(x + dx, y + dy) as usize
         })
         .sum()
     }
 
-    pub fn transition(&self, x: usize, y: usize) -> bool {
+    pub fn transition(&self, x: isize, y: isize) -> bool {
         let a = self.count_alive_neighbors(x as isize, y as isize);
 
-        if self.grid[y][x] {
+        if self.is_alive(x, y) {
             if a < 2 || a > 3 {
                 return false;
             }
@@ -75,10 +76,10 @@ impl<const N: usize, const M: usize> Grid<N, M> {
             return true;
         }
 
-        return self.grid[y][x];
+        return self.is_alive(x, y);
     }
 
-    pub fn retrieve(&self, x: usize, y: usize) -> bool {
-        self.grid[y][x]
+    pub fn is_alive(&self, x: isize, y: isize) -> bool {
+        self.cells.get(&(x,y)).is_some()
     }
 }

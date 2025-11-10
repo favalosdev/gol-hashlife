@@ -12,13 +12,12 @@ use std::time::{Duration,Instant};
 
 mod gol;
 use gol::grid::Grid;
+use gol::camera::Camera;
 
 const WINDOW_HEIGHT: u32 = 600;
 const WINDOW_WIDTH: u32 = 800;
-const SQUARE_FACTOR: u8 = 10;
-const SQUARE_SIZE: usize = (2 * SQUARE_FACTOR) as usize;
-const N: usize = (WINDOW_HEIGHT / (SQUARE_SIZE as u32)) as usize;
-const M: usize = (WINDOW_WIDTH / (SQUARE_SIZE as u32)) as usize;
+const SQUARE_FACTOR: u8 = 3;
+const SQUARE_SIZE: isize = (2 * SQUARE_FACTOR) as isize;
 const GAME_FREQ: u64 = 20;
 
 fn main() {
@@ -32,25 +31,32 @@ fn main() {
 
     let mut canvas: Canvas<Window> = window.into_canvas().build().unwrap();
     let mut event_pump = sdl_context.event_pump().unwrap();
-    let mut grid = Grid::<N, M>::new();
+    let mut grid = Grid::new();
 
-    let draw_squares = |canvas: &mut Canvas<Window>, grid: &mut Grid::<N,M>| {
-        for y in 0..N {
-            for x in 0..M {
-                if grid.retrieve(x, y) {
-                    canvas.set_draw_color(Color::RGB(255, 255, 255));
-                } else {
-                    canvas.set_draw_color(Color::RGB(0, 0, 0));
-                }
-                let a: i32 = (x * SQUARE_SIZE) as i32;
-                let b: i32 = (y * SQUARE_SIZE) as i32;
-                let _ = canvas.fill_rect(Rect::new(a, b, SQUARE_SIZE as u32,SQUARE_SIZE as u32));
-            }
+    let mut camera= Camera::new(5, 0, 0);
+
+    let draw_squares = |canvas: &mut Canvas<Window>, grid: &Grid, camera: &Camera| {
+        canvas.set_draw_color(Color::RGB(0,0,0));
+        canvas.clear();
+        canvas.set_draw_color(Color::RGB(255, 255, 255));
+
+        for (x,y) in grid.cells.iter() {
+            let (xo_w, yo_w) = (*x * SQUARE_SIZE, -*y * SQUARE_SIZE);
+            let (xf_w, yf_w) = (xo_w + SQUARE_SIZE, yo_w + SQUARE_SIZE);
+
+            let (xo_s, yo_s)= camera.from_world_coords(xo_w, yo_w);
+            let (xf_s, _) = camera.from_world_coords(xf_w, 0);
+            let (_, yf_s) = camera.from_world_coords(0, yf_w);
+
+            let _ = canvas.fill_rect(Rect::new(xo_s + 400, yo_s + 300, (xf_s - xo_s) as u32, (yf_s - yo_s) as u32));
         }
+        canvas.present();
     };
 
     let mut last_game_tick = Instant::now();
     let game_interval = Duration::from_nanos(1_000_000_000 / GAME_FREQ);
+
+    // draw_squares(&mut canvas, &grid, &camera);
 
     'running: loop {
         let  now = Instant::now();
@@ -58,7 +64,7 @@ fn main() {
         if now.duration_since(last_game_tick) >= game_interval {
                 last_game_tick = now;
                 canvas.clear();
-                draw_squares(&mut canvas, &mut grid);
+                draw_squares(&mut canvas, &grid, &camera);
                 canvas.present();
                 grid.evolve();
         }
@@ -69,15 +75,41 @@ fn main() {
                 Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
                     break 'running
                 },
+                /*
+                Event::KeyDown { scancode: Some(Scancode::W), .. } => {
+                    camera.y -= 1;
+                },
                 Event::KeyDown { scancode: Some(Scancode::A), .. } => {
-                    println!("Zooming in!");
+                    camera.x -= 1;
                 },
                 Event::KeyDown { scancode: Some(Scancode::S), .. } => {
-                    println!("Zooming out!");
+                    camera.y += 1;
                 },
+                Event::KeyDown { scancode: Some(Scancode::D), .. } => {
+                    camera.x += 1;
+                },
+                */
+                // Zoom in
+                Event::KeyDown { scancode: Some(Scancode::I), .. } => {
+                    camera.zoom += 1;
+                    // draw_squares(&mut canvas, &mut grid, &camera);
+                },
+                // Zoom out
+                Event::KeyDown { scancode: Some(Scancode::O), .. } => {
+                    if camera.zoom > 1 {
+                        camera.zoom -= 1;
+                    }
+                    // draw_squares(&mut canvas, &mut grid, &camera);
+                },
+                /*
+                Event::KeyDown { scancode: Some(Scancode::E), .. } => {
+                    grid.evolve();
+                    draw_squares(&mut canvas, &mut grid, &camera);
+                },
+                */
                 _ => {}
             }
-            ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+            std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
         }
     }
 }
