@@ -44,7 +44,7 @@ fn main() {
             let (xo_w, yo_w) = (*x * SQUARE_SIZE, -*y * SQUARE_SIZE);
             let (xf_w, yf_w) = (xo_w + SQUARE_SIZE, yo_w + SQUARE_SIZE);
 
-            let (xo_s, yo_s)= camera.from_world_coords(xo_w, yo_w);
+            let (xo_s, yo_s) = camera.from_world_coords(xo_w, yo_w);
             let (xf_s, _) = camera.from_world_coords(xf_w, 0);
             let (_, yf_s) = camera.from_world_coords(0, yf_w);
 
