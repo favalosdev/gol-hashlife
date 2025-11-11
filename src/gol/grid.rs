@@ -1,13 +1,13 @@
 use std::collections::HashSet;
 
+#[derive(Clone)]
 pub struct Grid {
-    pub cells: HashSet<(isize, isize)>, // IMPORTANT: this uses (x,y) format
-    range_x: isize,
-    range_y: isize
+    pub cells: HashSet<(isize, isize)>, // Important: this uses (x,y) format
+    range: isize
 }
 
 impl Grid {
-    pub fn new() -> Self {
+    pub fn new(range: isize) -> Self {
         let mut cells: HashSet<(isize, isize)> = HashSet::new();
 
         cells.insert((0,2));
@@ -30,31 +30,42 @@ impl Grid {
 
         Self {
             cells,
-            range_x: 20,
-            range_y: 20 
+            range
         }
     }
 
-    pub fn evolve(&mut self) {
-        let mut copy = self.cells.clone();
+    pub fn is_alive(&self, x: isize, y: isize) -> bool {
+        self.cells.get(&(x,y)).is_some()
+    }
 
-        for x in (-self.range_x)+1..self.range_x {
-            for y in (-self.range_y)+1..self.range_y {
+    pub fn enliven(&mut self, x: isize, y: isize) {
+        self.cells.insert((x,y));
+    }
+
+    pub fn kill(&mut self, x: isize, y: isize) {
+        self.cells.remove(&(x,y));
+    }
+
+    pub fn evolve(&mut self) {
+        let mut copy = self.clone();
+
+        for x in (-self.range)+1..self.range {
+            for y in -self.range+1..self.range {
                 let will_be_alive = self.transition(x,y);
 
                 if will_be_alive {
                     if !self.is_alive(x,y) {
-                        copy.insert((x,y));
+                        copy.enliven(x,y);
                     } 
                 } else {
                     if self.is_alive(x,y) {
-                        copy.remove(&(x,y));
+                        copy.kill(x,y);
                     }
                 }
             }
         }
 
-        self.cells = copy;
+        self.cells = copy.cells;
     }
 
     fn count_alive_neighbors(&self, x: isize, y: isize) -> usize {
@@ -68,11 +79,11 @@ impl Grid {
             let mut x_f= x + dx;
             let mut y_f = y + dy;
 
-            if x_f.abs() == self.range_x {
+            if x_f.abs() == self.range {
                 x_f = x.abs() * (-1) * dx.signum();
             }
 
-            if y_f.abs() == self.range_y {
+            if y_f.abs() == self.range {
                 y_f = y.abs() * (-1) * dy.signum();
             }
 
@@ -95,9 +106,5 @@ impl Grid {
         }
 
         return self.is_alive(x, y);
-    }
-
-    pub fn is_alive(&self, x: isize, y: isize) -> bool {
-        self.cells.get(&(x,y)).is_some()
     }
 }
