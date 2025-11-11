@@ -9,7 +9,6 @@ use sdl2::event::Event;
 use sdl2::keyboard::{Keycode,Scancode};
 use sdl2::rect::Rect;
 use std::time::{Duration,Instant};
-use sdl2::mouse::{MouseWheelDirection, MouseButton};
 
 mod gol;
 use gol::grid::Grid;
@@ -110,30 +109,6 @@ fn main() {
                         draw_squares(&mut canvas, &grid, &camera);
                     }
                 },
-                /*
-                Event::MouseButtonDown { mouse_btn, x, y, .. } => {
-                    match mouse_btn {
-                        MouseButton::Left => {
-                            println!("Raw: ({},{})", x, y);
-
-                            let x_s = x - OFFSET_X;
-                            let y_s = -(y - OFFSET_Y);
-                            println!("Screen cords: ({},{})", x_s, y_s);
-
-                            if !is_paused {
-                                camera.x = x_s / camera.zoom;
-                                camera.y = y_s / camera.zoom;
-                            } else {
-                                let (x_w, y_w) = camera.from_screen_coords(x_s, y_s);
-                                println!("World coords: ({},{})", x_w, y_w);
-                                grid.cells.insert((x_w,y_w));
-                                draw_squares(&mut canvas, &grid, &camera);
-                            }
-                        },
-                        _  => println!("Unsupported")
-                    }
-                },
-                */
                 // Zoom in
                 Event::KeyDown { scancode: Some(Scancode::I), .. } => {
                     camera.zoom += 1;
@@ -159,16 +134,6 @@ fn main() {
                 Event::KeyDown { scancode: Some(Scancode::R), .. } => {
                     is_paused = false;
                 },
-                /*
-                Event::MouseWheel { direction, y , ..} => {
-                    match direction {
-                        MouseWheelDirection::Normal => {
-                            camera.zoom += y;
-                        },
-                        _ => println!("Unsupported")
-                    }
-                }
-                */
                 Event::KeyDown { scancode: Some(Scancode::E), .. } => {
                     if is_paused {
                         grid.evolve();
