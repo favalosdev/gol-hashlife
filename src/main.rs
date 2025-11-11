@@ -9,6 +9,7 @@ use sdl2::event::Event;
 use sdl2::keyboard::{Keycode,Scancode};
 use sdl2::rect::Rect;
 use std::time::{Duration,Instant};
+use sdl2::mouse::{MouseWheelDirection, MouseButton};
 
 mod gol;
 use gol::grid::Grid;
@@ -17,6 +18,7 @@ use gol::camera::Camera;
 const WINDOW_HEIGHT: u32 = 600;
 const WINDOW_WIDTH: u32 = 800;
 const GAME_FREQ: u64 = 20;
+const FPS: u32 = 200;
 const ZOOM: i32 = 20;
 
 fn main() {
@@ -56,7 +58,6 @@ fn main() {
 
     let mut last_game_tick = Instant::now();
     let game_interval = Duration::from_nanos(1_000_000_000 / GAME_FREQ);
-
     // draw_squares(&mut canvas, &grid, &camera);
 
     'running: loop {
@@ -76,7 +77,6 @@ fn main() {
                 Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
                     break 'running
                 },
-                /*
                 Event::KeyDown { scancode: Some(Scancode::W), .. } => {
                     camera.y -= 1;
                 },
@@ -89,19 +89,33 @@ fn main() {
                 Event::KeyDown { scancode: Some(Scancode::D), .. } => {
                     camera.x += 1;
                 },
-                */
+                Event::MouseButtonDown { mouse_btn, x, y, .. } => {
+                    match mouse_btn {
+                        MouseButton::Left => {
+                            camera.x = x / camera.zoom;
+                            camera.y = y / camera.zoom;
+                        },
+                        _  => println!("Unsupported")
+                    }
+                },
                 // Zoom in
                 Event::KeyDown { scancode: Some(Scancode::I), .. } => {
                     camera.zoom += 1;
-                    // draw_squares(&mut canvas, &mut grid, &camera);
                 },
                 // Zoom out
                 Event::KeyDown { scancode: Some(Scancode::O), .. } => {
                     if camera.zoom > 1 {
                         camera.zoom -= 1;
                     }
-                    // draw_squares(&mut canvas, &mut grid, &camera);
                 },
+                Event::MouseWheel { direction, y , ..} => {
+                    match direction {
+                        MouseWheelDirection::Normal => {
+                            camera.zoom += y;
+                        },
+                        _ => println!("Unsupported")
+                    }
+                }
                 /*
                 Event::KeyDown { scancode: Some(Scancode::E), .. } => {
                     grid.evolve();
@@ -110,7 +124,7 @@ fn main() {
                 */
                 _ => {}
             }
-            std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+            std::thread::sleep(Duration::new(0, 1_000_000_000u32 / FPS));
         }
     }
 }

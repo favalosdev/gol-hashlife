@@ -14,4 +14,10 @@ impl Camera {
         let y_s = ((y_w as i32) - self.y) * self.zoom;
         (x_s, y_s)
     }
+
+    pub fn from_screen_coords(&self, x_s: i32, y_s: i32) -> (i32, i32) {
+        let x_w = x_s / self.zoom + self.x;
+        let y_w = y_s / self.zoom + self.y;
+        (x_w, y_w)
+    }
 }
