@@ -9,6 +9,7 @@ use sdl2::event::Event;
 use sdl2::keyboard::{Keycode,Scancode};
 use sdl2::rect::Rect;
 use std::time::{Duration,Instant};
+use sdl2::mouse::{MouseWheelDirection, MouseButton};
 
 mod gol;
 use gol::grid::Grid;
@@ -17,7 +18,10 @@ use gol::camera::Camera;
 const WINDOW_HEIGHT: u32 = 600;
 const WINDOW_WIDTH: u32 = 800;
 const GAME_FREQ: u64 = 20;
+const FPS: u32 = 200;
 const ZOOM: i32 = 20;
+const OFFSET_X: i32 = (WINDOW_WIDTH / 2) as i32;
+const OFFSET_Y: i32 = (WINDOW_HEIGHT / 2) as i32;
 
 fn main() {
     let sdl_context = sdl2::init().unwrap();
@@ -47,7 +51,7 @@ fn main() {
             let (xf_s, _) = camera.from_world_coords(xf_w, 0);
             let (_, yf_s) = camera.from_world_coords(0, yf_w);
 
-            let to_draw = Rect::new(xo_s + (WINDOW_WIDTH / 2) as i32, yo_s + (WINDOW_HEIGHT / 2) as i32, (xf_s - xo_s) as u32, (yf_s - yo_s) as u32);
+            let to_draw = Rect::new(xo_s + OFFSET_X, yo_s + OFFSET_Y, (xf_s - xo_s) as u32, (yf_s - yo_s) as u32);
             let _ = canvas.fill_rect(to_draw);
         }
 
@@ -56,17 +60,15 @@ fn main() {
 
     let mut last_game_tick = Instant::now();
     let game_interval = Duration::from_nanos(1_000_000_000 / GAME_FREQ);
-
-    // draw_squares(&mut canvas, &grid, &camera);
+    draw_squares(&mut canvas, &grid, &camera);
+    let mut is_paused = false;
 
     'running: loop {
         let  now = Instant::now();
 
-        if now.duration_since(last_game_tick) >= game_interval {
+        if !is_paused && now.duration_since(last_game_tick) >= game_interval{
                 last_game_tick = now;
-                canvas.clear();
                 draw_squares(&mut canvas, &grid, &camera);
-                canvas.present();
                 grid.evolve();
         }
 
@@ -76,7 +78,6 @@ fn main() {
                 Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
                     break 'running
                 },
-                /*
                 Event::KeyDown { scancode: Some(Scancode::W), .. } => {
                     camera.y -= 1;
                 },
@@ -89,28 +90,65 @@ fn main() {
                 Event::KeyDown { scancode: Some(Scancode::D), .. } => {
                     camera.x += 1;
                 },
+                /*
+                Event::MouseButtonDown { mouse_btn, x, y, .. } => {
+                    match mouse_btn {
+                        MouseButton::Left => {
+                            println!("Raw: ({},{})", x, y);
+
+                            let x_s = x - OFFSET_X;
+                            let y_s = -(y - OFFSET_Y);
+                            println!("Screen cords: ({},{})", x_s, y_s);
+
+                            if !is_paused {
+                                camera.x = x_s / camera.zoom;
+                                camera.y = y_s / camera.zoom;
+                            } else {
+                                let (x_w, y_w) = camera.from_screen_coords(x_s, y_s);
+                                println!("World coords: ({},{})", x_w, y_w);
+                                grid.cells.insert((x_w,y_w));
+                                draw_squares(&mut canvas, &grid, &camera);
+                            }
+                        },
+                        _  => println!("Unsupported")
+                    }
+                },
                 */
                 // Zoom in
                 Event::KeyDown { scancode: Some(Scancode::I), .. } => {
                     camera.zoom += 1;
-                    // draw_squares(&mut canvas, &mut grid, &camera);
                 },
                 // Zoom out
                 Event::KeyDown { scancode: Some(Scancode::O), .. } => {
                     if camera.zoom > 1 {
                         camera.zoom -= 1;
                     }
-                    // draw_squares(&mut canvas, &mut grid, &camera);
+                },
+                Event::KeyDown { scancode: Some(Scancode::P), .. } => {
+                    is_paused = true;
+                },
+                Event::KeyDown { scancode: Some(Scancode::R), .. } => {
+                    is_paused = false;
                 },
                 /*
-                Event::KeyDown { scancode: Some(Scancode::E), .. } => {
-                    grid.evolve();
-                    draw_squares(&mut canvas, &mut grid, &camera);
-                },
+                Event::MouseWheel { direction, y , ..} => {
+                    match direction {
+                        MouseWheelDirection::Normal => {
+                            camera.zoom += y;
+                        },
+                        _ => println!("Unsupported")
+                    }
+                }
                 */
+                Event::KeyDown { scancode: Some(Scancode::E), .. } => {
+                    if is_paused {
+                        grid.evolve();
+                        draw_squares(&mut canvas, &mut grid, &camera);
+                    }
+                },
                 _ => {}
             }
-            std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+            std::thread::sleep(Duration::new(0, 1_000_000_000u32 / FPS));
         }
     }
 }
