@@ -20,6 +20,8 @@ const WINDOW_WIDTH: u32 = 800;
 const GAME_FREQ: u64 = 20;
 const FPS: u32 = 200;
 const ZOOM: i32 = 20;
+const OFFSET_X: i32 = (WINDOW_WIDTH / 2) as i32;
+const OFFSET_Y: i32 = (WINDOW_HEIGHT / 2) as i32;
 
 fn main() {
     let sdl_context = sdl2::init().unwrap();
@@ -35,8 +37,7 @@ fn main() {
     let mut grid = Grid::new();
 
     let mut camera= Camera::new(ZOOM, 0, 0);
-    let offset_x = WINDOW_WIDTH / 2;
-    let offset_y = WINDOW_HEIGHT / 2;
+    
 
     let draw_squares = |canvas: &mut Canvas<Window>, grid: &Grid, camera: &Camera| {
         canvas.set_draw_color(Color::RGB(0,0,0));
@@ -51,7 +52,7 @@ fn main() {
             let (xf_s, _) = camera.from_world_coords(xf_w, 0);
             let (_, yf_s) = camera.from_world_coords(0, yf_w);
 
-            let to_draw = Rect::new(xo_s + offset_x as i32, yo_s + offset_y as i32, (xf_s - xo_s) as u32, (yf_s - yo_s) as u32);
+            let to_draw = Rect::new(xo_s + OFFSET_X, yo_s + OFFSET_Y, (xf_s - xo_s) as u32, (yf_s - yo_s) as u32);
             let _ = canvas.fill_rect(to_draw);
         }
 
@@ -94,14 +95,18 @@ fn main() {
                 Event::MouseButtonDown { mouse_btn, x, y, .. } => {
                     match mouse_btn {
                         MouseButton::Left => {
-                            let x_s = x;
-                            let y_s = y;
+                            println!("Raw: ({},{})", x, y);
+
+                            let x_s = x - OFFSET_X;
+                            let y_s = -(y - OFFSET_Y);
+                            println!("Screen cords: ({},{})", x_s, y_s);
 
                             if !is_paused {
                                 camera.x = x_s / camera.zoom;
                                 camera.y = y_s / camera.zoom;
                             } else {
                                 let (x_w, y_w) = camera.from_screen_coords(x_s, y_s);
+                                println!("World coords: ({},{})", x_w, y_w);
                                 grid.cells.insert((x_w,y_w));
                                 draw_squares(&mut canvas, &grid, &camera);
                             }
