@@ -1,13 +1,13 @@
-use std::collections::HashSet;
+use std::collections::{HashSet, LinkedList};
 
-#[derive(Clone)]
+const RANGE: usize = 2000;
+
 pub struct Grid {
-    pub cells: HashSet<(isize, isize)>, // Important: this uses (x,y) format
-    range: isize
+    pub cells: HashSet<(isize, isize)> // Important: this uses (x,y) format
 }
 
 impl Grid {
-    pub fn new(range: isize) -> Self {
+    pub fn new() -> Self {
         let mut cells: HashSet<(isize, isize)> = HashSet::new();
 
         cells.insert((0,2));
@@ -29,8 +29,7 @@ impl Grid {
         cells.insert((-8,-2));
 
         Self {
-            cells,
-            range
+            cells
         }
     }
 
@@ -38,58 +37,58 @@ impl Grid {
         self.cells.get(&(x,y)).is_some()
     }
 
-    pub fn enliven(&mut self, x: isize, y: isize) {
-        self.cells.insert((x,y));
-    }
-
-    pub fn kill(&mut self, x: isize, y: isize) {
-        self.cells.remove(&(x,y));
-    }
-
     pub fn evolve(&mut self) {
-        let mut copy = self.clone();
+        let mut to_traverse: LinkedList<(isize, isize)> = LinkedList::new();
 
-        for x in (-self.range)+1..self.range {
-            for y in -self.range+1..self.range {
-                let will_be_alive = self.transition(x,y);
+        for (x,y) in self.cells.iter() {
+            let (x, y) = (*x, *y);
 
-                if will_be_alive {
-                    if !self.is_alive(x,y) {
-                        copy.enliven(x,y);
-                    } 
-                } else {
-                    if self.is_alive(x,y) {
-                        copy.kill(x,y);
-                    }
-                }
+            to_traverse.push_back((x, y));
+            let mut neighbors = self.get_neighbor_coords(x, y);
+            to_traverse.append(&mut neighbors)
+        }
+
+        let mut copy: HashSet<(isize, isize)> = HashSet::new();
+
+        for (x, y) in to_traverse.iter() {
+            let (x, y) = (*x, *y);
+            let will_be_alive = self.transition(x, y);
+
+            if will_be_alive {
+                copy.insert((x, y));
             }
         }
 
-        self.cells = copy.cells;
+        self.cells = copy;
     }
 
-    fn count_alive_neighbors(&self, x: isize, y: isize) -> usize {
+    pub fn get_neighbor_coords(&self, x: isize, y: isize) -> LinkedList<(isize, isize)> {
         let offsets = [
             (-1, -1), (0, -1), (1, -1),
             (-1,  0),          (1,  0),
             (-1,  1), (0,  1), (1,  1),
         ];
 
-        offsets.iter().map(|&(dx, dy)| {
+        let coords: LinkedList<(isize,isize)> = offsets.iter().map(|&(dx, dy)| {
             let mut x_f= x + dx;
             let mut y_f = y + dy;
 
-            if x_f.abs() == self.range {
+            if x_f.abs() as usize == RANGE {
                 x_f = x.abs() * (-1) * dx.signum();
             }
 
-            if y_f.abs() == self.range {
+            if y_f.abs() as usize == RANGE {
                 y_f = y.abs() * (-1) * dy.signum();
             }
 
-            self.is_alive(x_f, y_f) as usize
-        })
-        .sum()
+            (x_f, y_f)
+        }).collect();
+
+        return coords;
+    }
+
+    fn count_alive_neighbors(&self, x: isize, y: isize) -> usize {
+        self.get_neighbor_coords(x, y).iter().map(|&(x,y)| self.is_alive(x, y) as usize).sum()
     }
 
     pub fn transition(&self, x: isize, y: isize) -> bool {

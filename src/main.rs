@@ -21,7 +21,6 @@ const FPS: u32 = 200;
 const ZOOM: i32 = 20;
 const OFFSET_X: i32 = (WINDOW_WIDTH / 2) as i32;
 const OFFSET_Y: i32 = (WINDOW_HEIGHT / 2) as i32;
-const RANGE: isize = 100;
 
 fn main() {
     let sdl_context = sdl2::init().unwrap();
@@ -34,7 +33,7 @@ fn main() {
 
     let mut canvas: Canvas<Window> = window.into_canvas().build().unwrap();
     let mut event_pump = sdl_context.event_pump().unwrap();
-    let mut grid = Grid::new(RANGE);
+    let mut grid = Grid::new();
 
     let mut camera= Camera::new(ZOOM, 0, 0);
 
