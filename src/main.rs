@@ -37,7 +37,6 @@ fn main() {
     let mut grid = Grid::new();
 
     let mut camera= Camera::new(ZOOM, 0, 0);
-    
 
     let draw_squares = |canvas: &mut Canvas<Window>, grid: &Grid, camera: &Camera| {
         canvas.set_draw_color(Color::RGB(0,0,0));
@@ -61,7 +60,7 @@ fn main() {
 
     let mut last_game_tick = Instant::now();
     let game_interval = Duration::from_nanos(1_000_000_000 / GAME_FREQ);
-    // draw_squares(&mut canvas, &grid, &camera);
+    draw_squares(&mut canvas, &grid, &camera);
     let mut is_paused = false;
 
     'running: loop {
@@ -69,7 +68,6 @@ fn main() {
 
         if !is_paused && now.duration_since(last_game_tick) >= game_interval{
                 last_game_tick = now;
-                canvas.clear();
                 draw_squares(&mut canvas, &grid, &camera);
                 grid.evolve();
         }
@@ -92,6 +90,7 @@ fn main() {
                 Event::KeyDown { scancode: Some(Scancode::D), .. } => {
                     camera.x += 1;
                 },
+                /*
                 Event::MouseButtonDown { mouse_btn, x, y, .. } => {
                     match mouse_btn {
                         MouseButton::Left => {
@@ -114,6 +113,7 @@ fn main() {
                         _  => println!("Unsupported")
                     }
                 },
+                */
                 // Zoom in
                 Event::KeyDown { scancode: Some(Scancode::I), .. } => {
                     camera.zoom += 1;
@@ -130,6 +130,7 @@ fn main() {
                 Event::KeyDown { scancode: Some(Scancode::R), .. } => {
                     is_paused = false;
                 },
+                /*
                 Event::MouseWheel { direction, y , ..} => {
                     match direction {
                         MouseWheelDirection::Normal => {
@@ -138,12 +139,13 @@ fn main() {
                         _ => println!("Unsupported")
                     }
                 }
-                /*
-                Event::KeyDown { scancode: Some(Scancode::E), .. } => {
-                    grid.evolve();
-                    draw_squares(&mut canvas, &mut grid, &camera);
-                },
                 */
+                Event::KeyDown { scancode: Some(Scancode::E), .. } => {
+                    if is_paused {
+                        grid.evolve();
+                        draw_squares(&mut canvas, &mut grid, &camera);
+                    }
+                },
                 _ => {}
             }
             std::thread::sleep(Duration::new(0, 1_000_000_000u32 / FPS));
