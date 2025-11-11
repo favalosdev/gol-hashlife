@@ -1,13 +1,13 @@
 use std::collections::{HashSet, LinkedList};
 
-#[derive(Clone)]
+const RANGE: usize = 2000;
+
 pub struct Grid {
-    pub cells: HashSet<(isize, isize)>, // Important: this uses (x,y) format
-    range: isize
+    pub cells: HashSet<(isize, isize)> // Important: this uses (x,y) format
 }
 
 impl Grid {
-    pub fn new(range: isize) -> Self {
+    pub fn new() -> Self {
         let mut cells: HashSet<(isize, isize)> = HashSet::new();
 
         cells.insert((0,2));
@@ -29,8 +29,7 @@ impl Grid {
         cells.insert((-8,-2));
 
         Self {
-            cells,
-            range
+            cells
         }
     }
 
@@ -74,11 +73,11 @@ impl Grid {
             let mut x_f= x + dx;
             let mut y_f = y + dy;
 
-            if x_f.abs() == self.range {
+            if x_f.abs() as usize == RANGE {
                 x_f = x.abs() * (-1) * dx.signum();
             }
 
-            if y_f.abs() == self.range {
+            if y_f.abs() as usize == RANGE {
                 y_f = y.abs() * (-1) * dy.signum();
             }
 

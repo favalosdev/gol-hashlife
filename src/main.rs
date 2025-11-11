@@ -33,7 +33,7 @@ fn main() {
 
     let mut canvas: Canvas<Window> = window.into_canvas().build().unwrap();
     let mut event_pump = sdl_context.event_pump().unwrap();
-    let mut grid = Grid::new(2000);
+    let mut grid = Grid::new();
 
     let mut camera= Camera::new(ZOOM, 0, 0);
 
