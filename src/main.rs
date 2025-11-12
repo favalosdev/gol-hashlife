@@ -62,7 +62,6 @@ fn main() {
         _ => {}
     } 
     
-
     let draw_squares = |canvas: &mut Canvas<Window>, grid: &Grid, camera: &Camera| {
         canvas.set_draw_color(Color::RGB(0,0,0));
         canvas.clear();
