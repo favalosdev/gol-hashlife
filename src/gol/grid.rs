@@ -15,14 +15,13 @@ impl Grid {
     }
 
     pub fn load_pattern<T : ca_formats::Input>(&mut self, pattern: Rle<T>) {
-        let p_width = pattern.header_data().unwrap().x;
-        let p_height = pattern.header_data().unwrap().y;
-        let cells = pattern
+        let width = pattern.header_data().unwrap().x;
+        let height = pattern.header_data().unwrap().y;
+        self.cells = pattern
             .map(|cell| cell.unwrap())
             .filter(|data | data.state == 1)
-            .map(|data| ((data.position.0 - (p_width as i64) / 2) as isize, (data.position.1 - (p_height as i64) / 2) as isize))
+            .map(|data| ((data.position.0 - (width as i64) / 2) as isize, (data.position.1 - (height as i64) / 2) as isize))
             .collect::<HashSet<_>>();
-        self.cells = cells; 
     }
 
     pub fn is_alive(&self, x: isize, y: isize) -> bool {
