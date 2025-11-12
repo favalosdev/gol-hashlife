@@ -1,4 +1,5 @@
 use std::collections::{HashSet, LinkedList};
+use ca_formats::rle::Rle;
 
 const RANGE: usize = 2000;
 
@@ -8,29 +9,20 @@ pub struct Grid {
 
 impl Grid {
     pub fn new() -> Self {
-        let mut cells: HashSet<(isize, isize)> = HashSet::new();
-
-        cells.insert((0,2));
-        cells.insert((1,2));
-        cells.insert((2,2));
-        cells.insert((2,3));
-        cells.insert((1,4));
-
-        cells.insert((-9,12));
-        cells.insert((-8,12));
-        cells.insert((-8,13));
-        cells.insert((-9,14));
-        cells.insert((-10,13));
-
-        cells.insert((-6,-3));
-        cells.insert((-6,-2));
-        cells.insert((-6,-1));
-        cells.insert((-7,-1));
-        cells.insert((-8,-2));
-
         Self {
-            cells
+            cells: HashSet::new()
         }
+    }
+
+    pub fn load_pattern<T : ca_formats::Input>(&mut self, pattern: Rle<T>) {
+        let p_width = pattern.header_data().unwrap().x;
+        let p_height = pattern.header_data().unwrap().y;
+        let cells = pattern
+            .map(|cell| cell.unwrap())
+            .filter(|data | data.state == 1)
+            .map(|data| ((data.position.0 - (p_width as i64) / 2) as isize, (data.position.1 - (p_height as i64) / 2) as isize))
+            .collect::<HashSet<_>>();
+        self.cells = cells; 
     }
 
     pub fn is_alive(&self, x: isize, y: isize) -> bool {
