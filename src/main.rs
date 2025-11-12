@@ -57,8 +57,7 @@ fn main() {
     match args.pattern_path {
         Some(path) => {
             let file = File::open(path).unwrap();
-            let pattern = Rle::new_from_file(file).unwrap();
-            grid.load_pattern(pattern);
+            grid.load_pattern(Rle::new_from_file(file).unwrap());
         },
         _ => {}
     } 
