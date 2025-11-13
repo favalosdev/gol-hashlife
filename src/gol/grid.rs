@@ -5,9 +5,8 @@ const RANGE: usize = 2000;
 
 pub struct Grid {
     pub cells: HashSet<(isize, isize)>, // Important: this uses (x,y) format
-    b: usize,
-    s_lower: usize, 
-    s_upper: usize
+    b: Vec<usize>,
+    s: Vec<usize>,
 }
 
 impl Grid {
@@ -15,9 +14,8 @@ impl Grid {
         Self {
             cells: HashSet::new(),
             // We default to the standard rules whenever possible
-            b: 3,
-            s_lower: 2,
-            s_upper: 3
+            b: vec![3],
+            s: vec![2]
         }
     }
 
@@ -30,9 +28,8 @@ impl Grid {
         match rule {
             Some(content) => {
                 let parts: Vec<&str> = content.split("/").collect();
-                self.b = (parts[0][1..]).parse::<usize>().unwrap();
-                self.s_lower = (parts[1][1..2]).parse::<usize>().unwrap();
-                self.s_upper = (parts[1][2..]).parse::<usize>().unwrap();
+                self.b = parts[0].chars().map(|c| c as usize).collect();
+                self.s = parts[1].chars().map(|c| c as usize).collect();
             },
             _ => {}
         }
@@ -106,12 +103,12 @@ impl Grid {
         let n = self.count_alive_neighbors(x, y);
 
         if self.is_alive(x, y) {
-            if n < self.s_lower || n > self.s_upper {
-                return false;
+            if self.s.contains(&n) {
+                return true;
             }
         } 
 
-        if n == self.b {
+        if self.b.contains(&n) {
             return true;
         }
 
