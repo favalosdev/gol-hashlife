@@ -63,7 +63,7 @@ fn main() {
             
         },
         None => {
-            file = File::open("patterns/house.rle").unwrap();
+            file = File::open("patterns/hwss.rle").unwrap();
         }
     }
 
