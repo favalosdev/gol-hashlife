@@ -8,7 +8,13 @@ use sdl2::pixels::Color;
 use sdl2::event::Event;
 use sdl2::keyboard::{Keycode,Scancode};
 use sdl2::rect::Rect;
+
 use std::time::{Duration,Instant};
+use std::fs::File;
+
+use clap::Parser;
+
+use ca_formats::rle::Rle;
 
 mod gol;
 use gol::grid::Grid;
@@ -21,8 +27,18 @@ const FPS: u32 = 200;
 const ZOOM: i32 = 20;
 const OFFSET_X: i32 = (WINDOW_WIDTH / 2) as i32;
 const OFFSET_Y: i32 = (WINDOW_HEIGHT / 2) as i32;
+const CAMERA_DELTA: i32 = 2;
+
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+    /// File-path of the pattern to load
+    #[arg(short = 'p', long)]
+    pattern_path: Option<String>,
+}
 
 fn main() {
+    // SDL-2 stuff 
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
 
@@ -31,12 +47,28 @@ fn main() {
         .build()
         .unwrap();
 
-    let mut canvas: Canvas<Window> = window.into_canvas().build().unwrap();
     let mut event_pump = sdl_context.event_pump().unwrap();
-    let mut grid = Grid::new();
+    let mut canvas: Canvas<Window> = window.into_canvas().build().unwrap();
 
+    // Game of life specific stuff
+    let args = Args::parse();
+    let mut grid = Grid::new();
     let mut camera= Camera::new(ZOOM, 0, 0);
 
+    let file;
+
+    match args.pattern_path {
+        Some(path) => {
+            file = File::open(path).unwrap();
+            
+        },
+        None => {
+            file = File::open("patterns/house.rle").unwrap();
+        }
+    }
+
+    grid.load_pattern(Rle::new_from_file(file).unwrap());
+    
     let draw_squares = |canvas: &mut Canvas<Window>, grid: &Grid, camera: &Camera| {
         canvas.set_draw_color(Color::RGB(0,0,0));
         canvas.clear();
@@ -81,28 +113,28 @@ fn main() {
                     break 'running
                 },
                 Event::KeyDown { scancode: Some(Scancode::W), .. } => {
-                    camera.y -= 1;
+                    camera.y -= CAMERA_DELTA;
 
                     if is_paused {
                         draw_squares(&mut canvas, &grid, &camera);
                     }
                 },
                 Event::KeyDown { scancode: Some(Scancode::A), .. } => {
-                    camera.x -= 1;
+                    camera.x -= CAMERA_DELTA;
 
                     if is_paused {
                         draw_squares(&mut canvas, &grid, &camera);
                     }
                 },
                 Event::KeyDown { scancode: Some(Scancode::S), .. } => {
-                    camera.y += 1;
+                    camera.y += CAMERA_DELTA;
 
                     if is_paused {
                         draw_squares(&mut canvas, &grid, &camera);
                     }
                 },
                 Event::KeyDown { scancode: Some(Scancode::D), .. } => {
-                    camera.x += 1;
+                    camera.x += CAMERA_DELTA;
 
                     if is_paused {
                         draw_squares(&mut canvas, &grid, &camera);
