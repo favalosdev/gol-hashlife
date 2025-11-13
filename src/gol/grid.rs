@@ -4,23 +4,44 @@ use ca_formats::rle::Rle;
 const RANGE: usize = 2000;
 
 pub struct Grid {
-    pub cells: HashSet<(isize, isize)> // Important: this uses (x,y) format
+    pub cells: HashSet<(isize, isize)>, // Important: this uses (x,y) format
+    b: usize,
+    s_lower: usize, 
+    s_upper: usize
 }
 
 impl Grid {
     pub fn new() -> Self {
         Self {
-            cells: HashSet::new()
+            cells: HashSet::new(),
+            // We default to the standard rules whenever possible
+            b: 3,
+            s_lower: 2,
+            s_upper: 3
         }
     }
 
     pub fn load_pattern<T : ca_formats::Input>(&mut self, pattern: Rle<T>) {
-        let width = pattern.header_data().unwrap().x;
-        let height = pattern.header_data().unwrap().y;
+        let header_data = pattern.header_data().unwrap();
+        let width = header_data.x;
+        let height = header_data.y;
+        let rule = &header_data.rule;
+
+        match rule {
+            Some(content) => {
+                let parts: Vec<&str> = content.split("/").collect();
+                self.b = (parts[0][1..]).parse::<usize>().unwrap();
+                self.s_lower = (parts[1][1..2]).parse::<usize>().unwrap();
+                self.s_upper = (parts[1][2..]).parse::<usize>().unwrap();
+                println!("B{}/S{}{}", self.b, self.s_lower, self.s_upper);
+            },
+            _ => {}
+        }
+
         self.cells = pattern
             .map(|cell| cell.unwrap())
             .filter(|data | data.state == 1)
-            .map(|data| ((data.position.0 - (width as i64) / 2) as isize, (data.position.1 - (height as i64) / 2) as isize))
+            .map(|data| ((data.position.0 - (width as i64) / 2) as isize, (-data.position.1 - (height as i64) / 2) as isize))
             .collect::<HashSet<_>>();
     }
 
@@ -86,12 +107,12 @@ impl Grid {
         let n = self.count_alive_neighbors(x, y);
 
         if self.is_alive(x, y) {
-            if n < 2 || n > 3 {
+            if n < self.s_lower || n > self.s_upper {
                 return false;
             }
         } 
 
-        if n == 3 {
+        if n == self.b {
             return true;
         }
 
