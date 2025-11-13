@@ -15,7 +15,7 @@ impl Grid {
             cells: HashSet::new(),
             // We default to the standard rules whenever possible
             b: vec![3],
-            s: vec![2]
+            s: vec![2,3]
         }
     }
 
@@ -28,8 +28,8 @@ impl Grid {
         match rule {
             Some(content) => {
                 let parts: Vec<&str> = content.split("/").collect();
-                self.b = parts[0].chars().map(|c| c as usize).collect();
-                self.s = parts[1].chars().map(|c| c as usize).collect();
+                self.b = parts[0][1..].chars().map(|c| c.to_digit(10).unwrap() as usize).collect();
+                self.s = parts[1][1..].chars().map(|c| c.to_digit(10).unwrap() as usize).collect();
             },
             _ => {}
         }
@@ -103,8 +103,8 @@ impl Grid {
         let n = self.count_alive_neighbors(x, y);
 
         if self.is_alive(x, y) {
-            if self.s.contains(&n) {
-                return true;
+            if !self.s.contains(&n) {
+                return false;
             }
         } 
 
