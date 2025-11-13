@@ -27,6 +27,7 @@ const FPS: u32 = 200;
 const ZOOM: i32 = 20;
 const OFFSET_X: i32 = (WINDOW_WIDTH / 2) as i32;
 const OFFSET_Y: i32 = (WINDOW_HEIGHT / 2) as i32;
+const CAMERA_DELTA: i32 = 2;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -54,13 +55,19 @@ fn main() {
     let mut grid = Grid::new();
     let mut camera= Camera::new(ZOOM, 0, 0);
 
+    let file;
+
     match args.pattern_path {
         Some(path) => {
-            let file = File::open(path).unwrap();
-            grid.load_pattern(Rle::new_from_file(file).unwrap());
+            file = File::open(path).unwrap();
+            
         },
-        _ => {}
-    } 
+        None => {
+            file = File::open("patterns/house.rle").unwrap();
+        }
+    }
+
+    grid.load_pattern(Rle::new_from_file(file).unwrap());
     
     let draw_squares = |canvas: &mut Canvas<Window>, grid: &Grid, camera: &Camera| {
         canvas.set_draw_color(Color::RGB(0,0,0));
@@ -106,28 +113,28 @@ fn main() {
                     break 'running
                 },
                 Event::KeyDown { scancode: Some(Scancode::W), .. } => {
-                    camera.y -= 1;
+                    camera.y -= CAMERA_DELTA;
 
                     if is_paused {
                         draw_squares(&mut canvas, &grid, &camera);
                     }
                 },
                 Event::KeyDown { scancode: Some(Scancode::A), .. } => {
-                    camera.x -= 1;
+                    camera.x -= CAMERA_DELTA;
 
                     if is_paused {
                         draw_squares(&mut canvas, &grid, &camera);
                     }
                 },
                 Event::KeyDown { scancode: Some(Scancode::S), .. } => {
-                    camera.y += 1;
+                    camera.y += CAMERA_DELTA;
 
                     if is_paused {
                         draw_squares(&mut canvas, &grid, &camera);
                     }
                 },
                 Event::KeyDown { scancode: Some(Scancode::D), .. } => {
-                    camera.x += 1;
+                    camera.x += CAMERA_DELTA;
 
                     if is_paused {
                         draw_squares(&mut canvas, &grid, &camera);
