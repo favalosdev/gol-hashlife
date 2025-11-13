@@ -37,12 +37,12 @@ impl Grid {
         self.cells = pattern
             .map(|cell| cell.unwrap())
             .filter(|data | data.state == 1)
-            .map(|data| ((data.position.0 - (width as i64) / 2) as isize, (-data.position.1 - (height as i64) / 2) as isize))
+            .map(|data| ((data.position.0 - (width as i64) / 2) as isize, (data.position.1 - (height as i64) / 2) as isize))
             .collect::<HashSet<_>>();
     }
 
     pub fn is_alive(&self, x: isize, y: isize) -> bool {
-        self.cells.get(&(x,y)).is_some()
+        self.cells.get(&(x, y)).is_some()
     }
 
     pub fn evolve(&mut self) {
