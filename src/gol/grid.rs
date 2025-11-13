@@ -33,7 +33,6 @@ impl Grid {
                 self.b = (parts[0][1..]).parse::<usize>().unwrap();
                 self.s_lower = (parts[1][1..2]).parse::<usize>().unwrap();
                 self.s_upper = (parts[1][2..]).parse::<usize>().unwrap();
-                println!("B{}/S{}{}", self.b, self.s_lower, self.s_upper);
             },
             _ => {}
         }
