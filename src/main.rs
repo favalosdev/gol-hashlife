@@ -32,12 +32,12 @@ const CAMERA_DELTA: i32 = 2;
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
-    /// File-path of the pattern to load
+    /// File-path of the pattern (in .rle format) to load
     #[arg(short = 'p', long)]
     pattern_path: Option<String>,
 }
 
-// Copied macro to handle the annoying Rect construct
+// Stolen macros to handle annoying Rects
 macro_rules! rect(
     ($x:expr, $y:expr, $w:expr, $h:expr) => (
         Rect::new($x as i32, $y as i32, $w as u32, $h as u32)
@@ -49,7 +49,7 @@ fn main() {
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
 
-    let window = video_subsystem.window("Game of life", WINDOW_WIDTH, WINDOW_HEIGHT)
+    let window = video_subsystem.window("Game of Life", WINDOW_WIDTH, WINDOW_HEIGHT)
         .position_centered()
         .build()
         .unwrap();
