@@ -37,6 +37,13 @@ struct Args {
     pattern_path: Option<String>,
 }
 
+// Copied macro to handle the annoying Rect construct
+macro_rules! rect(
+    ($x:expr, $y:expr, $w:expr, $h:expr) => (
+        Rect::new($x as i32, $y as i32, $w as u32, $h as u32)
+    )
+);
+
 fn main() {
     // SDL-2 stuff 
     let sdl_context = sdl2::init().unwrap();
@@ -82,7 +89,7 @@ fn main() {
             let (xf_s, _) = camera.from_world_coords(xf_w, 0);
             let (_, yf_s) = camera.from_world_coords(0, yf_w);
 
-            let to_draw = Rect::new(xo_s + OFFSET_X, yo_s + OFFSET_Y, (xf_s - xo_s) as u32, (yf_s - yo_s) as u32);
+            let to_draw = rect!(xo_s + OFFSET_X, yo_s + OFFSET_Y, xf_s - xo_s, yf_s - yo_s);
             let _ = canvas.fill_rect(to_draw);
         }
 
