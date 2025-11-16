@@ -8,59 +8,109 @@ use sdl2::pixels::Color;
 use sdl2::event::Event;
 use sdl2::keyboard::{Keycode,Scancode};
 use sdl2::rect::Rect;
+
 use std::time::{Duration,Instant};
+use std::fs::File;
+
+use clap::Parser;
+
+use ca_formats::rle::Rle;
 
 mod gol;
 use gol::grid::Grid;
+use gol::camera::Camera;
 
 const WINDOW_HEIGHT: u32 = 600;
 const WINDOW_WIDTH: u32 = 800;
-const SQUARE_FACTOR: u8 = 10;
-const SQUARE_SIZE: usize = (2 * SQUARE_FACTOR) as usize;
-const N: usize = (WINDOW_HEIGHT / (SQUARE_SIZE as u32)) as usize;
-const M: usize = (WINDOW_WIDTH / (SQUARE_SIZE as u32)) as usize;
 const GAME_FREQ: u64 = 20;
+const FPS: u32 = 200;
+const ZOOM: i32 = 20;
+const OFFSET_X: i32 = (WINDOW_WIDTH / 2) as i32;
+const OFFSET_Y: i32 = (WINDOW_HEIGHT / 2) as i32;
+const CAMERA_DELTA: i32 = 2;
+
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+    /// File-path of the pattern (in .rle format) to load
+    #[arg(short = 'p', long)]
+    pattern_path: Option<String>,
+}
+
+// Stolen macros to handle annoying Rects
+macro_rules! rect(
+    ($x:expr, $y:expr, $w:expr, $h:expr) => (
+        Rect::new($x as i32, $y as i32, $w as u32, $h as u32)
+    )
+);
 
 fn main() {
+    // SDL-2 stuff 
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
 
-    let window = video_subsystem.window("Game of life", WINDOW_WIDTH, WINDOW_HEIGHT)
+    let window = video_subsystem.window("Game of Life", WINDOW_WIDTH, WINDOW_HEIGHT)
         .position_centered()
         .build()
         .unwrap();
 
-    let mut canvas: Canvas<Window> = window.into_canvas().build().unwrap();
     let mut event_pump = sdl_context.event_pump().unwrap();
-    let mut grid = Grid::<N, M>::new();
+    let mut canvas: Canvas<Window> = window.into_canvas().build().unwrap();
 
-    let draw_squares = |canvas: &mut Canvas<Window>, grid: &mut Grid::<N,M>| {
-        for y in 0..N {
-            for x in 0..M {
-                if grid.retrieve(x, y) {
-                    canvas.set_draw_color(Color::RGB(255, 255, 255));
-                } else {
-                    canvas.set_draw_color(Color::RGB(0, 0, 0));
-                }
-                let a: i32 = (x * SQUARE_SIZE) as i32;
-                let b: i32 = (y * SQUARE_SIZE) as i32;
-                let _ = canvas.fill_rect(Rect::new(a, b, SQUARE_SIZE as u32,SQUARE_SIZE as u32));
-            }
+    // Game of life specific stuff
+    let args = Args::parse();
+    let mut grid = Grid::new();
+    let mut camera= Camera::new(ZOOM, 0, 0);
+
+    let file;
+
+    match args.pattern_path {
+        Some(path) => {
+            file = File::open(path).unwrap();
+            
+        },
+        None => {
+            file = File::open("patterns/hwss.rle").unwrap();
         }
+    }
+
+    grid.load_pattern(Rle::new_from_file(file).unwrap());
+    
+    let draw_squares = |canvas: &mut Canvas<Window>, grid: &Grid, camera: &Camera| {
+        canvas.set_draw_color(Color::RGB(0,0,0));
+        canvas.clear();
+        canvas.set_draw_color(Color::RGB(255, 255, 255));
+
+        for (x,y) in grid.cells.iter() {
+            let (xo_w, yo_w) = (*x,-*y);
+            let (xf_w, yf_w) = (xo_w + 1, yo_w + 1);
+
+            let (xo_s, yo_s) = camera.from_world_coords(xo_w, yo_w);
+            let (xf_s, _) = camera.from_world_coords(xf_w, 0);
+            let (_, yf_s) = camera.from_world_coords(0, yf_w);
+
+            let to_draw = rect!(xo_s + OFFSET_X, yo_s + OFFSET_Y, xf_s - xo_s, yf_s - yo_s);
+            let _ = canvas.fill_rect(to_draw);
+        }
+
+        canvas.present();
     };
 
     let mut last_game_tick = Instant::now();
     let game_interval = Duration::from_nanos(1_000_000_000 / GAME_FREQ);
+    let mut is_paused = false;
+
+    // Initial render
+    draw_squares(&mut canvas, &grid, &camera);
 
     'running: loop {
-        let  now = Instant::now();
-
-        if now.duration_since(last_game_tick) >= game_interval {
+        if !is_paused {
+            let  now = Instant::now();
+            if  now.duration_since(last_game_tick) >= game_interval {
                 last_game_tick = now;
-                canvas.clear();
-                draw_squares(&mut canvas, &mut grid);
-                canvas.present();
+                draw_squares(&mut canvas, &grid, &camera);
                 grid.evolve();
+            }
         }
 
         for event in event_pump.poll_iter() {
@@ -69,15 +119,68 @@ fn main() {
                 Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
                     break 'running
                 },
+                Event::KeyDown { scancode: Some(Scancode::W), .. } => {
+                    camera.y -= CAMERA_DELTA;
+
+                    if is_paused {
+                        draw_squares(&mut canvas, &grid, &camera);
+                    }
+                },
                 Event::KeyDown { scancode: Some(Scancode::A), .. } => {
-                    println!("Zooming in!");
+                    camera.x -= CAMERA_DELTA;
+
+                    if is_paused {
+                        draw_squares(&mut canvas, &grid, &camera);
+                    }
                 },
                 Event::KeyDown { scancode: Some(Scancode::S), .. } => {
-                    println!("Zooming out!");
+                    camera.y += CAMERA_DELTA;
+
+                    if is_paused {
+                        draw_squares(&mut canvas, &grid, &camera);
+                    }
+                },
+                Event::KeyDown { scancode: Some(Scancode::D), .. } => {
+                    camera.x += CAMERA_DELTA;
+
+                    if is_paused {
+                        draw_squares(&mut canvas, &grid, &camera);
+                    }
+                },
+                // Zoom in
+                Event::KeyDown { scancode: Some(Scancode::I), .. } => {
+                    camera.zoom += 1;
+
+                    if is_paused {
+                        draw_squares(&mut canvas, &grid, &camera);
+                    }
+                },
+                // Zoom out
+                Event::KeyDown { scancode: Some(Scancode::O), .. } => {
+                    if camera.zoom > 1 {
+                        camera.zoom -= 1;
+                    }
+
+                    if is_paused {
+                        draw_squares(&mut canvas, &grid, &camera);
+                    }
+                },
+                Event::KeyDown { scancode: Some(Scancode::P), .. } => {
+                    is_paused = true;
+                    draw_squares(&mut canvas, &grid, &camera);
+                },
+                Event::KeyDown { scancode: Some(Scancode::R), .. } => {
+                    is_paused = false;
+                },
+                Event::KeyDown { scancode: Some(Scancode::E), .. } => {
+                    if is_paused {
+                        grid.evolve();
+                        draw_squares(&mut canvas, &mut grid, &camera);
+                    }
                 },
                 _ => {}
             }
-            ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+            std::thread::sleep(Duration::new(0, 1_000_000_000u32 / FPS));
         }
     }
 }

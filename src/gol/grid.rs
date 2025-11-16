@@ -1,84 +1,107 @@
-pub struct Grid<const N: usize, const M: usize> {
-    grid: [[bool; M]; N]
+use std::collections::{HashSet, LinkedList};
+use ca_formats::rle::Rle;
+use ca_formats::Input;
+
+const RANGE: usize = 2000;
+
+pub struct Grid {
+    pub cells: HashSet<(isize, isize)>, // Important: this uses (x,y) format
+    b: Vec<usize>,
+    s: Vec<usize>,
 }
 
-impl<const N: usize, const M: usize> Grid<N, M> {
+impl Grid {
     pub fn new() -> Self {
-        let mut init: [[bool;M]; N] = [[false;M]; N];
-
-        // Our way of initializing the seed
-        init[15][18] = true;
-        init[15][19] = true;
-        init[15][20] = true;
-        init[14][18] = true;
-        init[13][19] = true;
-
-        init[25][9] = true;
-        init[25][10] = true;
-        init[26][10] = true;
-        init[27][9] = true;
-        init[26][8] = true;
-
-        init[10][11] = true;
-        init[10][12] = true;
-        init[11][12] = true;
-        init[12][12] = true;
-        init[11][13] = true;
-
         Self {
-            grid: init
+            cells: HashSet::new(),
+            // B3/S23
+            b: vec![3],
+            s: vec![2,3]
         }
+    }
+
+    pub fn load_pattern<T : Input>(&mut self, pattern: Rle<T>) {
+        let header_data = pattern.header_data().unwrap();
+        let width = header_data.x;
+        let height = header_data.y;
+        let rule = &header_data.rule;
+
+        match rule {
+            Some(content) => {
+                let parts: Vec<&str> = content.split("/").collect();
+                self.b = parts[0][1..].chars().map(|c| c.to_digit(10).unwrap() as usize).collect();
+                self.s = parts[1][1..].chars().map(|c| c.to_digit(10).unwrap() as usize).collect();
+            },
+            _ => {}
+        }
+
+        self.cells = pattern
+            .map(|cell| cell.unwrap())
+            .filter(|data | data.state == 1)
+            .map(|data| ((data.position.0 - (width as i64) / 2) as isize, (-data.position.1 - (height as i64) / 2) as isize))
+            .collect::<HashSet<_>>();
+    }
+
+    pub fn is_alive(&self, x: isize, y: isize) -> bool {
+        self.cells.get(&(x, y)).is_some()
     }
 
     pub fn evolve(&mut self) {
-        let mut copy: [[bool;M]; N] = [[false;M]; N];
+        let mut to_traverse: LinkedList<(isize, isize)> = LinkedList::new();
 
-        for y in 0..N {
-            for x in 0..M {
-                let value = self.transition(x, y);
-                copy[y][x] = value;
+        for (x,y) in self.cells.iter() {
+            let (x, y) = (*x, *y);
+
+            to_traverse.push_back((x, y));
+            let mut neighbors = self.get_neighbor_coords(x, y);
+            to_traverse.append(&mut neighbors)
+        }
+
+        let mut copy: HashSet<(isize, isize)> = HashSet::new();
+
+        for (x, y) in to_traverse.iter() {
+            let (x, y) = (*x, *y);
+            let will_be_alive = self.transition(x, y);
+
+            if will_be_alive {
+                copy.insert((x, y));
             }
         }
 
-        self.grid = copy;
+        self.cells = copy;
     }
 
-    fn count_alive_neighbors(&self, x: isize, y: isize) -> usize {
-        let m_p = M as isize;
-        let n_p = N as isize;
-
+    pub fn get_neighbor_coords(&self, x: isize, y: isize) -> LinkedList<(isize, isize)> {
         let offsets = [
             (-1, -1), (0, -1), (1, -1),
             (-1,  0),          (1,  0),
             (-1,  1), (0,  1), (1,  1),
         ];
 
-        // We are modelling the grid as a toroid
-        offsets.iter().map(|&(dx, dy)| {
-            let grid_x = (x + dx).rem_euclid(m_p) as usize;
-            let grid_y = (y + dy).rem_euclid(n_p) as usize;
-            self.grid[grid_y][grid_x] as usize
-        })
-        .sum()
-    }
+        let coords: LinkedList<(isize, isize)> = offsets.iter().map(|&(dx, dy)| {
+            let mut x_f= x + dx;
+            let mut y_f = y + dy;
 
-    pub fn transition(&self, x: usize, y: usize) -> bool {
-        let a = self.count_alive_neighbors(x as isize, y as isize);
-
-        if self.grid[y][x] {
-            if a < 2 || a > 3 {
-                return false;
+            if x_f.abs() as usize == RANGE {
+                x_f = x.abs() * (-1) * dx.signum();
             }
-        } 
 
-        if a == 3 {
-            return true;
-        }
+            if y_f.abs() as usize == RANGE {
+                y_f = y.abs() * (-1) * dy.signum();
+            }
 
-        return self.grid[y][x];
+            (x_f, y_f)
+        }).collect();
+
+        return coords;
     }
 
-    pub fn retrieve(&self, x: usize, y: usize) -> bool {
-        self.grid[y][x]
+    fn count_alive_neighbors(&self, x: isize, y: isize) -> usize {
+        self.get_neighbor_coords(x, y).iter().map(|&(x,y)| self.is_alive(x, y) as usize).sum()
+    }
+
+    pub fn transition(&self, x: isize, y: isize) -> bool {
+        let n = self.count_alive_neighbors(x, y);
+        if self.is_alive(x, y) { self.s.contains(&n) } else { self.b.contains(&n) }
     }
 }
