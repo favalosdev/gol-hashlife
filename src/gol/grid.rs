@@ -1,5 +1,6 @@
 use std::collections::{HashSet, LinkedList};
 use ca_formats::rle::Rle;
+use ca_formats::Input;
 
 const RANGE: usize = 2000;
 
@@ -13,13 +14,13 @@ impl Grid {
     pub fn new() -> Self {
         Self {
             cells: HashSet::new(),
-            // We default to the standard rules whenever possible
+            // B3/S23
             b: vec![3],
             s: vec![2,3]
         }
     }
 
-    pub fn load_pattern<T : ca_formats::Input>(&mut self, pattern: Rle<T>) {
+    pub fn load_pattern<T : Input>(&mut self, pattern: Rle<T>) {
         let header_data = pattern.header_data().unwrap();
         let width = header_data.x;
         let height = header_data.y;
@@ -77,7 +78,7 @@ impl Grid {
             (-1,  1), (0,  1), (1,  1),
         ];
 
-        let coords: LinkedList<(isize,isize)> = offsets.iter().map(|&(dx, dy)| {
+        let coords: LinkedList<(isize, isize)> = offsets.iter().map(|&(dx, dy)| {
             let mut x_f= x + dx;
             let mut y_f = y + dy;
 
@@ -101,17 +102,6 @@ impl Grid {
 
     pub fn transition(&self, x: isize, y: isize) -> bool {
         let n = self.count_alive_neighbors(x, y);
-
-        if self.is_alive(x, y) {
-            if !self.s.contains(&n) {
-                return false;
-            }
-        } 
-
-        if self.b.contains(&n) {
-            return true;
-        }
-
-        return self.is_alive(x, y);
+        if self.is_alive(x, y) { self.s.contains(&n) } else { self.b.contains(&n) }
     }
 }
