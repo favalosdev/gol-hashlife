@@ -9,6 +9,7 @@ use sdl2::event::Event;
 use sdl2::keyboard::{Keycode,Scancode};
 use sdl2::rect::Rect;
 use sdl2::render::TextureQuery;
+use sdl2::mouse::MouseState;
 
 use std::time::{Duration,Instant};
 use std::fs::File;
@@ -25,6 +26,7 @@ use gol::camera::Camera;
 const WINDOW_HEIGHT: u32 = 600;
 const WINDOW_WIDTH: u32 = 800;
 const GAME_FREQ: u64 = 20;
+const RENDER_FREQ: u64 = 20;
 const FPS: u32 = 200;
 const ZOOM: i32 = 20;
 const OFFSET_X: i32 = (WINDOW_WIDTH / 2) as i32;
@@ -101,16 +103,18 @@ fn draw_feedback(canvas: &mut Canvas<Window>, feedback: &Feedback) {
 
     canvas.copy(&texture, None, Some(target)).unwrap();
 }
-    
-fn draw_objects(canvas: &mut Canvas<Window>, grid: &Grid, camera: &Camera, feedback: &Feedback) {
+
+fn draw_all(canvas: &mut Canvas<Window>, grid: &Grid, camera: &Camera, feedback: &Feedback) {
     canvas.set_draw_color(Color::RGB(0,0,0));
     canvas.clear();
+
     canvas.set_draw_color(Color::RGB(255, 255, 255));
-    draw_squares(canvas, grid, camera);
+    draw_squares(canvas, &grid, &camera);
     draw_feedback(canvas, feedback);
+
     canvas.present();
 }
-
+    
 fn main() {
     // SDL-2 stuff 
     let sdl_context = sdl2::init().unwrap();
@@ -156,19 +160,22 @@ fn main() {
     let mut is_paused = false;
 
     // Initial render
-    draw_objects(&mut canvas, &grid, &camera, &feedback);
+    draw_all(&mut canvas, &grid, &camera, &feedback);
 
     'running: loop {
         let  now = Instant::now();
         if  now.duration_since(last_game_tick) >= game_interval {
+            last_game_tick = now;
+            draw_all(&mut canvas, &grid, &camera, &feedback);
             if !is_paused {
-                last_game_tick = now;
-                draw_objects(&mut canvas, &grid, &camera, &feedback);
-                // Post-render task
                 grid.evolve();
                 feedback.generation += 1;
             }
         }
+
+        let mouse_state: MouseState = event_pump.mouse_state();
+        let (x_w, y_w) = camera.from_screen_coords(mouse_state.x() - OFFSET_X, mouse_state.y() - OFFSET_Y);
+        feedback.mouse_coords = MouseCoords { x: x_w, y: -y_w };
 
         for event in event_pump.poll_iter() {
             match event {
@@ -178,53 +185,29 @@ fn main() {
                 },
                 Event::KeyDown { scancode: Some(Scancode::W), .. } => {
                     camera.y -= CAMERA_DELTA;
-
-                    if is_paused {
-                        draw_objects(&mut canvas, &grid, &camera, &feedback);
-                    }
                 },
                 Event::KeyDown { scancode: Some(Scancode::A), .. } => {
                     camera.x -= CAMERA_DELTA;
-
-                    if is_paused {
-                        draw_objects(&mut canvas, &grid, &camera, &feedback);
-                    }
                 },
                 Event::KeyDown { scancode: Some(Scancode::S), .. } => {
                     camera.y += CAMERA_DELTA;
-
-                    if is_paused {
-                        draw_objects(&mut canvas, &grid, &camera, &feedback);
-                    }
                 },
                 Event::KeyDown { scancode: Some(Scancode::D), .. } => {
                     camera.x += CAMERA_DELTA;
-
-                    if is_paused {
-                        draw_objects(&mut canvas, &grid, &camera, &feedback);
-                    }
                 },
                 // Zoom in
                 Event::KeyDown { scancode: Some(Scancode::I), .. } => {
                     camera.zoom += 1;
-
-                    if is_paused {
-                        draw_objects(&mut canvas, &grid, &camera, &feedback);
-                    }
                 },
                 // Zoom out
                 Event::KeyDown { scancode: Some(Scancode::O), .. } => {
                     if camera.zoom > 1 {
                         camera.zoom -= 1;
                     }
-
-                    if is_paused {
-                        draw_objects(&mut canvas, &grid, &camera, &feedback);
-                    }
                 },
                 Event::KeyDown { scancode: Some(Scancode::P), .. } => {
                     is_paused = true;
-                    draw_objects(&mut canvas, &grid, &camera, &feedback);
+                    // draw_all(&mut canvas, &grid, &camera, &feedback);
                 },
                 Event::KeyDown { scancode: Some(Scancode::R), .. } => {
                     is_paused = false;
@@ -233,13 +216,8 @@ fn main() {
                     if is_paused {
                         grid.evolve();
                         feedback.generation += 1;
-                        draw_objects(&mut canvas, &mut grid, &camera, &feedback);
                     }
                 },
-                Event::MouseMotion { x, y,  .. } => {
-                    let (x_w, y_w) = camera.from_screen_coords(x - OFFSET_X, y - OFFSET_Y);
-                    feedback.mouse_coords = MouseCoords { x: x_w, y: -y_w };
-                }
                 _ => {}
             }
             std::thread::sleep(Duration::new(0, 1_000_000_000u32 / FPS));
