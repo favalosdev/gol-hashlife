@@ -237,8 +237,8 @@ fn main() {
                     }
                 },
                 Event::MouseMotion { x, y,  .. } => {
-                    let (x_w, y_w) = camera.from_screen_coords(x, y);
-                    feedback.mouse_coords = MouseCoords { x: x_w, y: y_w };
+                    let (x_w, y_w) = camera.from_screen_coords(x - OFFSET_X, y - OFFSET_Y);
+                    feedback.mouse_coords = MouseCoords { x: x_w, y: -y_w };
                 }
                 _ => {}
             }
