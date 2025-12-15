@@ -1,17 +1,19 @@
 use memoize::memoize;
+use std::collections::LinkedList;
+use literal::list;
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
-pub struct Node {
+pub struct QTNode {
     k: usize,
     n: usize,
-    a: Box<Option<Node>>,
-    b: Box<Option<Node>>,
-    c: Box<Option<Node>>,
-    d: Box<Option<Node>>
+    a: Box<Option<QTNode>>,
+    b: Box<Option<QTNode>>,
+    c: Box<Option<QTNode>>,
+    d: Box<Option<QTNode>>
 }
 
-impl Node {
-    pub fn new(k: usize, n: usize, a: Option<Node>, b: Option<Node>, c: Option<Node>, d: Option<Node>) -> Self {
+impl QTNode {
+    pub fn new(k: usize, n: usize, a: Option<QTNode>, b: Option<QTNode>, c: Option<QTNode>, d: Option<QTNode>) -> Self {
         Self {
             k,
             n,
@@ -23,7 +25,7 @@ impl Node {
     }
 }
 
-pub fn join(a: &Option<Node>, b: &Option<Node>, c: &Option<Node>, d: &Option<Node>) -> Node {
+pub fn join(a: &Option<QTNode>, b: &Option<QTNode>, c: &Option<QTNode>, d: &Option<QTNode>) -> QTNode {
     let ar = a.as_ref().unwrap();
     let br = b.as_ref().unwrap();
     let cr = c.as_ref().unwrap();
@@ -35,13 +37,13 @@ pub fn join(a: &Option<Node>, b: &Option<Node>, c: &Option<Node>, d: &Option<Nod
     let dn = dr.n;
     let n = an + bn + cn + dn;
     // We can later on see whether this performs or not
-    Node::new(ar.k + 1, n, Some(ar.clone()), Some(br.clone()),Some(cr.clone()), Some(dr.clone()))
+    QTNode::new(ar.k + 1, n, Some(ar.clone()), Some(br.clone()),Some(cr.clone()), Some(dr.clone()))
 }
 
 #[memoize]
-pub fn get_zero(k: usize) -> Node {
+pub fn get_zero(k: usize) -> QTNode {
     if k == 0 {
-        Node::new(0, 0, None, None, None, None)
+        QTNode::new(0, 0, None, None, None, None)
     } else {
         let z = Some(get_zero(k-1));
         join(&z, &z,&z, &z)
@@ -50,7 +52,7 @@ pub fn get_zero(k: usize) -> Node {
 
 // In the worst case, the grid in here is 2x2 so there's no risk of unwrapping a None value
 #[memoize]
-pub fn centre(m: Node) -> Node {
+pub fn centre(m: QTNode) -> QTNode {
     let z = &Some(get_zero(m.k - 1));
     let a = m.a.as_ref();
     let b = m.b.as_ref();
@@ -66,15 +68,15 @@ pub fn centre(m: Node) -> Node {
 }
 
 pub fn life(
-    a: Option<&Node>,
-    b: Option<&Node>,
-    c: Option<&Node>,
-    d: Option<&Node>,
-    e: Option<&Node>,
-    f: Option<&Node>,
-    g: Option<&Node>,
-    h: Option<&Node>,
-    i: Option<&Node>) -> Node {
+    a: Option<&QTNode>,
+    b: Option<&QTNode>,
+    c: Option<&QTNode>,
+    d: Option<&QTNode>,
+    e: Option<&QTNode>,
+    f: Option<&QTNode>,
+    g: Option<&QTNode>,
+    h: Option<&QTNode>,
+    i: Option<&QTNode>) -> QTNode {
     let neighbors = vec![a, b, c, d, f, g, h, i];
     let mut outer: usize = 0;
 
@@ -83,14 +85,14 @@ pub fn life(
     }
 
     if (e.unwrap().n == 1 && outer == 2) || outer == 3 {
-        Node::new(0, 1, None, None, None, None)
+        QTNode::new(0, 1, None, None, None, None)
     } else {
-        Node::new(0, 0, None, None, None, None)
+        QTNode::new(0, 0, None, None, None, None)
     }
 }
 
 #[memoize]
-pub fn life_4x4(m: Node) -> Node {
+pub fn life_4x4(m: QTNode) -> QTNode {
     let a = m.a.unwrap();
     let aa = a.a.as_ref();
     let ab = a.b.as_ref();
@@ -162,7 +164,8 @@ pub fn life_4x4(m: Node) -> Node {
     join(ad2, bc2, cb2, da2)
 }
 
-pub fn next_gen(m: Node) -> Node {
+#[memoize]
+pub fn next_gen(m: QTNode) -> QTNode {
     if m.n == 0 {
         m.a.unwrap()
     } else if m.k == 2 {
@@ -211,7 +214,8 @@ pub fn next_gen(m: Node) -> Node {
     }
 }
 
-pub fn successor(m: Node) -> Node {
+#[memoize]
+pub fn successor(m: QTNode) -> QTNode {
     if m.n == 0 {
         m.a.unwrap()
     } else if m.k == 2 {
@@ -243,7 +247,7 @@ pub fn successor(m: Node) -> Node {
 
         let c1 = successor(join(aa, ab, ac, ad));
         let c2 = successor(join(ab, ba, ad, bc));
-        let c3 = successor(join(ba, bb,bc, bd));
+        let c3 = successor(join(ba, bb, bc, bd));
         let c4 = successor(join(ac, ad, ca, cb));
         let c5 = successor(join(ad, bc, cb, da));
         let c6 = successor(join(bc, bd, da, db));
@@ -257,5 +261,29 @@ pub fn successor(m: Node) -> Node {
         let j4 = &Some(successor(join(c5.d.as_ref(), c6.c.as_ref(), c8.b.as_ref(), c9.a.as_ref())));
 
         join(j1, j2, j3, j4)
+    }
+}
+
+#[memoize]
+pub fn expand(m: QTNode, x: usize, y: usize) -> LinkedList<(isize, isize)> {
+    if m.n == 0 {
+        list![]
+    } else {
+        let k = m.k as u32;
+        let size: usize = (2 as u32).pow(k) as usize;
+        let offset = size >> 1;
+
+        let a = m.a.unwrap();
+        let b = m.b.unwrap();
+        let c = m.c.unwrap();
+        let d = m.d.unwrap();
+
+        let mut points: LinkedList<(isize, isize)> = list![];
+
+        points.append(&mut expand(a, x, y));
+        points.append(&mut expand(b, x + offset, y));
+        points.append(&mut expand(c, x, y + offset));
+        points.append(&mut expand(d, x + offset, y + offset));
+        points
     }
 }
