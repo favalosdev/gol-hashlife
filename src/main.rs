@@ -41,8 +41,8 @@ struct Args {
 
 #[derive(Clone, PartialEq, Eq)]
 struct MouseCoords {
-    x: i32,
-    y: i32
+    x: isize,
+    y: isize
 }
 
 #[derive(Clone, PartialEq, Eq)]
@@ -236,6 +236,11 @@ fn main() {
                         draw_objects(&mut canvas, &mut grid, &camera, &feedback);
                     }
                 },
+                Event::MouseMotion { mousestate, .. } => {
+                    let (x_w, y_w) = camera.from_screen_coords(mousestate.x(), mousestate.y());
+                    feedback.mouse_coords.x = x_w;
+                    feedback.mouse_coords.y = y_w;
+                }
                 _ => {}
             }
             std::thread::sleep(Duration::new(0, 1_000_000_000u32 / FPS));
