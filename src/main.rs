@@ -39,6 +39,13 @@ struct Args {
     pattern_path: Option<String>,
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+struct Info {
+    mouse_x: i32,
+    mouse_y: i32,
+    generation: i32,
+}
+
 // Stolen macros to handle annoying Rects
 macro_rules! rect(
     ($x:expr, $y:expr, $w:expr, $h:expr) => (
@@ -46,30 +53,7 @@ macro_rules! rect(
     )
 );
 
-fn get_centered_rect(rect_width: u32, rect_height: u32, cons_width: u32, cons_height: u32) -> Rect {
-    let wr = rect_width as f32 / cons_width as f32;
-    let hr = rect_height as f32 / cons_height as f32;
-
-    let (w, h) = if wr > 1f32 || hr > 1f32 {
-        if wr > hr {
-            println!("Scaling down! The text will look worse!");
-            let h = (rect_height as f32 / wr) as i32;
-            (cons_width as i32, h)
-        } else {
-            println!("Scaling down! The text will look worse!");
-            let w = (rect_width as f32 / hr) as i32;
-            (w, cons_height as i32)
-        }
-    } else {
-        (rect_width as i32, rect_height as i32)
-    };
-
-    let cx = (WINDOW_WIDTH as i32 - w) / 2;
-    let cy = (WINDOW_HEIGHT as i32 - h) / 2;
-    rect!(cx, cy, w, h)
-}
-
-fn render_example_text(canvas: &mut Canvas<Window>) {
+fn render_info(canvas: &mut Canvas<Window>, text: &str, padding: u32) {
     let texture_creator = canvas.texture_creator();
     let ttf_context = sdl2::ttf::init().map_err(|e| e.to_string()).unwrap();
 
@@ -79,7 +63,7 @@ fn render_example_text(canvas: &mut Canvas<Window>) {
 
     // render a surface, and convert it to a texture bound to the canvas
     let surface = font
-        .render("Hello Rust!")
+        .render(text)
         .blended(Color::RGB(255, 255, 255))
         .unwrap();
 
@@ -87,16 +71,9 @@ fn render_example_text(canvas: &mut Canvas<Window>) {
         .create_texture_from_surface(&surface)
         .unwrap();
 
-    let TextureQuery { width, height, .. } = texture.query();
+    let TextureQuery { width: t_width, height: t_height, .. } = texture.query();
 
-    // If the example text is too big for the screen, downscale it (and center irregardless)
-    let padding = 64;
-    let target = get_centered_rect(
-        width,
-        height,
-         WINDOW_WIDTH - padding,
-        WINDOW_HEIGHT - padding,
-    );
+    let target = rect!(WINDOW_WIDTH - t_width - padding, WINDOW_HEIGHT - t_height - padding, t_width, t_height); 
 
     canvas.copy(&texture, None, Some(target)).unwrap();
     canvas.present();
@@ -132,9 +109,17 @@ fn main() {
         }
     }
 
+    let mut info = Info {
+        mouse_x: 0,
+        mouse_y: 0,
+        generation: 0
+    };
+
+    let mut prev_info =  info;
+
     grid.load_pattern(Rle::new_from_file(file).unwrap());
     
-    let draw_squares = |canvas: &mut Canvas<Window>, grid: &Grid, camera: &Camera| {
+    let draw_squares = |canvas: &mut Canvas<Window>, grid: &Grid, camera: &Camera, info: &mut Info, prev_info: &mut Info| {
         canvas.set_draw_color(Color::RGB(0,0,0));
         canvas.clear();
         canvas.set_draw_color(Color::RGB(255, 255, 255));
@@ -152,27 +137,43 @@ fn main() {
         }
 
         canvas.present();
+        *prev_info = *info;
+        *info = Info {
+            mouse_x: prev_info.mouse_x,
+            mouse_y: prev_info.mouse_y,
+            generation: prev_info.generation + 1
+        }
     };
 
-    // let mut last_game_tick = Instant::now();
-    // let game_interval = Duration::from_nanos(1_000_000_000 / GAME_FREQ);
+    let format_info = |info: &Info| {
+        let mx = info.mouse_x;
+        let my = info.mouse_y;
+        let g = info.generation;
+        return format!("x: {mx}, y: {my}, gen: {g}");
+    };
+
+    let mut last_game_tick = Instant::now();
+    let game_interval = Duration::from_nanos(1_000_000_000 / GAME_FREQ);
     let mut is_paused = false;
 
     // Initial render
-    // draw_squares(&mut canvas, &grid, &camera);
-    render_example_text(&mut canvas);
+    draw_squares(&mut canvas, &grid, &camera, &mut info, &mut prev_info);
+    render_info(&mut canvas, &format_info(&info), 10);
 
     'running: loop {
-        /*
-        if !is_paused {
-            let  now = Instant::now();
-            if  now.duration_since(last_game_tick) >= game_interval {
+        let  now = Instant::now();
+        if  now.duration_since(last_game_tick) >= game_interval {
+            if !is_paused {
                 last_game_tick = now;
-                draw_squares(&mut canvas, &grid, &camera);
+                draw_squares(&mut canvas, &grid, &camera, &mut info, &mut prev_info);
                 grid.evolve();
             }
+
+            if info != prev_info {
+                render_info(&mut canvas, &format_info(&info), 10);
+                prev_info = info;
+            }
         }
-        */
 
         for event in event_pump.poll_iter() {
             match event {
@@ -184,28 +185,28 @@ fn main() {
                     camera.y -= CAMERA_DELTA;
 
                     if is_paused {
-                        draw_squares(&mut canvas, &grid, &camera);
+                        draw_squares(&mut canvas, &grid, &camera, &mut info, &mut prev_info);
                     }
                 },
                 Event::KeyDown { scancode: Some(Scancode::A), .. } => {
                     camera.x -= CAMERA_DELTA;
 
                     if is_paused {
-                        draw_squares(&mut canvas, &grid, &camera);
+                        draw_squares(&mut canvas, &grid, &camera, &mut info, &mut prev_info);
                     }
                 },
                 Event::KeyDown { scancode: Some(Scancode::S), .. } => {
                     camera.y += CAMERA_DELTA;
 
                     if is_paused {
-                        draw_squares(&mut canvas, &grid, &camera);
+                        draw_squares(&mut canvas, &grid, &camera, &mut info, &mut prev_info);
                     }
                 },
                 Event::KeyDown { scancode: Some(Scancode::D), .. } => {
                     camera.x += CAMERA_DELTA;
 
                     if is_paused {
-                        draw_squares(&mut canvas, &grid, &camera);
+                        draw_squares(&mut canvas, &grid, &camera, &mut info, &mut prev_info);
                     }
                 },
                 // Zoom in
@@ -213,7 +214,7 @@ fn main() {
                     camera.zoom += 1;
 
                     if is_paused {
-                        draw_squares(&mut canvas, &grid, &camera);
+                        draw_squares(&mut canvas, &grid, &camera, &mut info, &mut prev_info);
                     }
                 },
                 // Zoom out
@@ -223,12 +224,12 @@ fn main() {
                     }
 
                     if is_paused {
-                        draw_squares(&mut canvas, &grid, &camera);
+                        draw_squares(&mut canvas, &grid, &camera, &mut info, &mut prev_info);
                     }
                 },
                 Event::KeyDown { scancode: Some(Scancode::P), .. } => {
                     is_paused = true;
-                    draw_squares(&mut canvas, &grid, &camera);
+                    draw_squares(&mut canvas, &grid, &camera, &mut info, &mut prev_info);
                 },
                 Event::KeyDown { scancode: Some(Scancode::R), .. } => {
                     is_paused = false;
@@ -236,7 +237,7 @@ fn main() {
                 Event::KeyDown { scancode: Some(Scancode::E), .. } => {
                     if is_paused {
                         grid.evolve();
-                        draw_squares(&mut canvas, &mut grid, &camera);
+                        draw_squares(&mut canvas, &mut grid, &camera, &mut info, &mut prev_info);
                     }
                 },
                 _ => {}
