@@ -102,12 +102,12 @@ fn draw_feedback(canvas: &mut Canvas<Window>, feedback: &Feedback) {
     canvas.copy(&texture, None, Some(target)).unwrap();
 }
     
-fn draw_objects(canvas: &mut Canvas<Window>, grid: &Grid, camera: &Camera, feeback: &Feedback) {
+fn draw_objects(canvas: &mut Canvas<Window>, grid: &Grid, camera: &Camera, feedback: &Feedback) {
     canvas.set_draw_color(Color::RGB(0,0,0));
     canvas.clear();
     canvas.set_draw_color(Color::RGB(255, 255, 255));
     draw_squares(canvas, grid, camera);
-    draw_feedback(canvas, feeback);
+    draw_feedback(canvas, feedback);
     canvas.present();
 }
 
