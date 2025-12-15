@@ -8,9 +8,11 @@ use sdl2::pixels::Color;
 use sdl2::event::Event;
 use sdl2::keyboard::{Keycode,Scancode};
 use sdl2::rect::Rect;
+use sdl2::render::TextureQuery;
 
 use std::time::{Duration,Instant};
 use std::fs::File;
+use std::path::Path;
 
 use clap::Parser;
 
@@ -44,6 +46,62 @@ macro_rules! rect(
     )
 );
 
+fn get_centered_rect(rect_width: u32, rect_height: u32, cons_width: u32, cons_height: u32) -> Rect {
+    let wr = rect_width as f32 / cons_width as f32;
+    let hr = rect_height as f32 / cons_height as f32;
+
+    let (w, h) = if wr > 1f32 || hr > 1f32 {
+        if wr > hr {
+            println!("Scaling down! The text will look worse!");
+            let h = (rect_height as f32 / wr) as i32;
+            (cons_width as i32, h)
+        } else {
+            println!("Scaling down! The text will look worse!");
+            let w = (rect_width as f32 / hr) as i32;
+            (w, cons_height as i32)
+        }
+    } else {
+        (rect_width as i32, rect_height as i32)
+    };
+
+    let cx = (WINDOW_WIDTH as i32 - w) / 2;
+    let cy = (WINDOW_HEIGHT as i32 - h) / 2;
+    rect!(cx, cy, w, h)
+}
+
+fn render_example_text(canvas: &mut Canvas<Window>) {
+    let texture_creator = canvas.texture_creator();
+    let ttf_context = sdl2::ttf::init().map_err(|e| e.to_string()).unwrap();
+
+    // Load a font
+    let font = ttf_context.load_font(Path::new("assets/IBM_Plex_Mono/IBMPlexMono-Regular.ttf"), 20).unwrap();
+    // font.set_style(sdl2::ttf::FontStyle::BOLD);
+
+    // render a surface, and convert it to a texture bound to the canvas
+    let surface = font
+        .render("Hello Rust!")
+        .blended(Color::RGB(255, 255, 255))
+        .unwrap();
+
+    let texture = texture_creator
+        .create_texture_from_surface(&surface)
+        .unwrap();
+
+    let TextureQuery { width, height, .. } = texture.query();
+
+    // If the example text is too big for the screen, downscale it (and center irregardless)
+    let padding = 64;
+    let target = get_centered_rect(
+        width,
+        height,
+         WINDOW_WIDTH - padding,
+        WINDOW_HEIGHT - padding,
+    );
+
+    canvas.copy(&texture, None, Some(target)).unwrap();
+    canvas.present();
+}
+
 fn main() {
     // SDL-2 stuff 
     let sdl_context = sdl2::init().unwrap();
@@ -63,14 +121,14 @@ fn main() {
     let mut camera= Camera::new(ZOOM, 0, 0);
 
     let file;
-
+ 
     match args.pattern_path {
         Some(path) => {
             file = File::open(path).unwrap();
             
         },
         None => {
-            file = File::open("patterns/hwss.rle").unwrap();
+            file = File::open("assets/patterns/hwss.rle").unwrap();
         }
     }
 
@@ -96,14 +154,16 @@ fn main() {
         canvas.present();
     };
 
-    let mut last_game_tick = Instant::now();
-    let game_interval = Duration::from_nanos(1_000_000_000 / GAME_FREQ);
+    // let mut last_game_tick = Instant::now();
+    // let game_interval = Duration::from_nanos(1_000_000_000 / GAME_FREQ);
     let mut is_paused = false;
 
     // Initial render
-    draw_squares(&mut canvas, &grid, &camera);
+    // draw_squares(&mut canvas, &grid, &camera);
+    render_example_text(&mut canvas);
 
     'running: loop {
+        /*
         if !is_paused {
             let  now = Instant::now();
             if  now.duration_since(last_game_tick) >= game_interval {
@@ -112,6 +172,7 @@ fn main() {
                 grid.evolve();
             }
         }
+        */
 
         for event in event_pump.poll_iter() {
             match event {

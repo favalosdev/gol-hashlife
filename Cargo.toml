@@ -8,4 +8,4 @@ ca-formats = "0.3.5"
 clap = { version = "4.5.51", features = ["derive"] }
 cute = "0.3.0"
 memoize = "0.5.1"
-sdl2 = "0.38.0"
+sdl2 = { version = "0.38.0", features = ["ttf"] }
