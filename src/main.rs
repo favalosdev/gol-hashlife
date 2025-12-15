@@ -236,10 +236,9 @@ fn main() {
                         draw_objects(&mut canvas, &mut grid, &camera, &feedback);
                     }
                 },
-                Event::MouseMotion { mousestate, .. } => {
-                    let (x_w, y_w) = camera.from_screen_coords(mousestate.x(), mousestate.y());
-                    feedback.mouse_coords.x = x_w;
-                    feedback.mouse_coords.y = y_w;
+                Event::MouseMotion { x, y,  .. } => {
+                    let (x_w, y_w) = camera.from_screen_coords(x, y);
+                    feedback.mouse_coords = MouseCoords { x: x_w, y: y_w };
                 }
                 _ => {}
             }
