@@ -71,6 +71,23 @@ impl Grid {
         self.cells = copy;
     }
 
+    /*
+    pub fn get_bounds(&self) -> Option<(isize, isize, isize, isize)> {
+        let xs = self.cells.iter().map(|t| t.0).collect::<Vec<_>>();
+        let ys = self.cells.iter().map(|t| t.1).collect::<Vec<_>>();
+
+        let min_x = xs.iter().min();
+        let max_x = xs.iter().max();
+        let min_y = ys.iter().min();
+        let max_y = ys.iter().max();
+
+        match (min_x, max_x, min_y, max_y) {
+            (Some(a), Some(b), Some(c), Some(d)) => Some((*a, *b, *c, *d)),
+            _ => None
+        }
+    }
+    */
+
     pub fn get_neighbor_coords(&self, x: isize, y: isize) -> LinkedList<(isize, isize)> {
         let offsets = [
             (-1, -1), (0, -1), (1, -1),

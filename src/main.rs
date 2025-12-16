@@ -26,7 +26,6 @@ use gol::camera::Camera;
 const WINDOW_HEIGHT: u32 = 600;
 const WINDOW_WIDTH: u32 = 800;
 const GAME_FREQ: u64 = 20;
-const RENDER_FREQ: u64 = 20;
 const FPS: u32 = 200;
 const ZOOM: i32 = 20;
 const OFFSET_X: i32 = (WINDOW_WIDTH / 2) as i32;
@@ -60,17 +59,44 @@ macro_rules! rect(
     )
 );
 
+fn get_rect(camera: &Camera, x_raw: isize, y_raw: isize) -> Rect {
+    let (xo_w, yo_w) = (x_raw, -y_raw);
+    let (xf_w, yf_w) = (xo_w + 1, yo_w + 1);
+
+    let (xo_s, yo_s) = camera.from_world_coords(xo_w, yo_w);
+    let (xf_s, _) = camera.from_world_coords(xf_w, 0);
+    let (_, yf_s) = camera.from_world_coords(0, yf_w);
+
+    rect!(xo_s + OFFSET_X, yo_s + OFFSET_Y, xf_s - xo_s, yf_s - yo_s)
+}
+
 fn draw_squares(canvas: &mut Canvas<Window>, grid: &Grid, camera: &Camera) {
+    canvas.set_draw_color(Color::RGB(0, 255, 0));
+
     for (x,y) in grid.cells.iter() {
-        let (xo_w, yo_w) = (*x,-*y);
-        let (xf_w, yf_w) = (xo_w + 1, yo_w + 1);
+        let to_fill = get_rect(camera, *x, *y);
+        let _ = canvas.fill_rect(to_fill);
+    }
+}
 
-        let (xo_s, yo_s) = camera.from_world_coords(xo_w, yo_w);
-        let (xf_s, _) = camera.from_world_coords(xf_w, 0);
-        let (_, yf_s) = camera.from_world_coords(0, yf_w);
+fn draw_grid(canvas: &mut Canvas<Window>, grid: &Grid, camera: &Camera) {
+    canvas.set_draw_color(Color::RGB(255, 255, 255));
 
-        let to_draw = rect!(xo_s + OFFSET_X, yo_s + OFFSET_Y, xf_s - xo_s, yf_s - yo_s);
-        let _ = canvas.fill_rect(to_draw);
+    let min_x_s = -1 - OFFSET_X;
+    let max_x_s = (WINDOW_WIDTH as i32) + 1 - OFFSET_X;
+    let min_y_s = -1 - OFFSET_Y;
+    let max_y_s = (WINDOW_HEIGHT as i32) + 1 - OFFSET_Y;
+
+    let tl_w = camera.from_screen_coords(min_x_s, min_y_s);
+    let br_w = camera.from_screen_coords(max_x_s, max_y_s);
+
+    for x in tl_w.0..=br_w.0 {
+        for y in tl_w.1..=br_w.1 {
+            if !grid.is_alive(x, y) {
+                let to_draw = get_rect(camera, x, y);
+                let _ = canvas.draw_rect(to_draw);
+            }
+        }
     }
 }
 
@@ -90,7 +116,7 @@ fn draw_feedback(canvas: &mut Canvas<Window>, feedback: &Feedback) {
     // render a surface, and convert it to a texture bound to the canvas
     let surface = font
         .render(&text)
-        .blended(Color::RGB(255, 255, 255))
+        .blended(Color::RGB(255, 0, 0))
         .unwrap();
 
     let texture = texture_creator
@@ -108,8 +134,8 @@ fn draw_all(canvas: &mut Canvas<Window>, grid: &Grid, camera: &Camera, feedback:
     canvas.set_draw_color(Color::RGB(0,0,0));
     canvas.clear();
 
-    canvas.set_draw_color(Color::RGB(255, 255, 255));
-    draw_squares(canvas, &grid, &camera);
+    draw_squares(canvas, grid, camera);
+    draw_grid(canvas, grid, camera);
     draw_feedback(canvas, feedback);
 
     canvas.present();
