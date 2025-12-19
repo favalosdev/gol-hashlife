@@ -95,27 +95,28 @@ fn draw_squares(canvas: &mut Canvas<Window>, grid: &Grid, camera: &Camera, show_
     } 
 }
 
-fn draw_grid(canvas: &mut Canvas<Window>, camera: &Camera, mut min_x_s: i32, mut min_y_s: i32) {
+fn draw_grid(canvas: &mut Canvas<Window>, camera: &Camera, min_x_s: i32, min_y_s: i32) {
     canvas.set_draw_color(GRID_COLOR);
 
     let dummy = get_rect(camera, 0, 0);
     let width = dummy.width() as i32;
     let height = dummy.height() as i32;
 
-    while min_x_s >= 0 {
-        min_x_s -= width;
+    let start_x = min_x_s % width;
+    let start_y = min_y_s % height;
+
+    let mut x = start_x;
+    while x <= WINDOW_WIDTH as i32 {
+        let _ = canvas.draw_line((x, 0), (x, WINDOW_HEIGHT as i32));
+        x += width;
     }
 
-    while min_y_s >= 0 {
-        min_y_s -= height;
-    }
-
-    for x_s in (min_x_s..=(WINDOW_WIDTH as i32)).step_by(width as usize) {
-        for y_s in (min_y_s..=(WINDOW_HEIGHT as i32)).step_by(width as usize) {
-            let to_draw = rect!(x_s, y_s, width, height);
-            let _ = canvas.draw_rect(to_draw);
-        }
-    }
+    // Draw Horizontal Lines
+    let mut y = start_y;
+    while y <= WINDOW_HEIGHT as i32 {
+        let _ = canvas.draw_line((0, y), (WINDOW_WIDTH as i32, y));
+        y += height;
+    } 
 }
 
 fn draw_feedback(canvas: &mut Canvas<Window>, feedback: &Feedback) {
