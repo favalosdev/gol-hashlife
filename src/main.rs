@@ -71,7 +71,7 @@ fn get_rect(camera: &Camera, x_raw: isize, y_raw: isize) -> Rect {
     rect!(xo_s + OFFSET_X, yo_s + OFFSET_Y, xf_s - xo_s, yf_s - yo_s)
 }
 
-fn draw_squares(canvas: &mut Canvas<Window>, grid: &Grid, camera: &Camera) {
+fn draw_squares(canvas: &mut Canvas<Window>, grid: &Grid, camera: &Camera, show_grid: bool) {
     canvas.set_draw_color(Color::RGB(0, 255, 0));
 
     let mut min_x_s = WINDOW_WIDTH as i32;
@@ -87,7 +87,9 @@ fn draw_squares(canvas: &mut Canvas<Window>, grid: &Grid, camera: &Camera) {
         }
     }
 
-    draw_grid(canvas, camera, min_x_s, min_y_s)
+    if show_grid {
+        draw_grid(canvas, camera, min_x_s, min_y_s)
+    } 
 }
 
 fn draw_grid(canvas: &mut Canvas<Window>, camera: &Camera, mut min_x_s: i32, mut min_y_s: i32) {
@@ -119,7 +121,8 @@ fn draw_feedback(canvas: &mut Canvas<Window>, feedback: &Feedback) {
     let padding = 10;
 
     // Load a font
-    let font = ttf_context.load_font(Path::new("assets/IBM_Plex_Mono/IBMPlexMono-Regular.ttf"), 20).unwrap();
+    let mut font = ttf_context.load_font(Path::new("assets/IBM_Plex_Mono/IBMPlexMono-Regular.ttf"), 20).unwrap();
+    font.set_style(sdl2::ttf::FontStyle::BOLD);
 
     let mx = feedback.mouse_coords.x;
     let my = feedback.mouse_coords.y;
@@ -143,14 +146,11 @@ fn draw_feedback(canvas: &mut Canvas<Window>, feedback: &Feedback) {
     canvas.copy(&texture, None, Some(target)).unwrap();
 }
 
-fn draw_all(canvas: &mut Canvas<Window>, grid: &Grid, camera: &Camera, feedback: &Feedback) {
+fn draw_all(canvas: &mut Canvas<Window>, grid: &Grid, camera: &Camera, feedback: &Feedback, show_grid: bool) {
     canvas.set_draw_color(Color::RGB(0,0,0));
     canvas.clear();
-
-    draw_squares(canvas, grid, camera);
-    // draw_grid(canvas, grid, camera);
+    draw_squares(canvas, grid, camera, show_grid);
     draw_feedback(canvas, feedback);
-
     canvas.present();
 }
     
@@ -197,15 +197,16 @@ fn main() {
     let mut last_game_tick = Instant::now();
     let game_interval = Duration::from_nanos(1_000_000_000 / GAME_FREQ);
     let mut is_paused = false;
+    let mut show_grid = false;
 
     // Initial render
-    draw_all(&mut canvas, &grid, &camera, &feedback);
+    draw_all(&mut canvas, &grid, &camera, &feedback, show_grid);
 
     'running: loop {
         let  now = Instant::now();
         if  now.duration_since(last_game_tick) >= game_interval {
             last_game_tick = now;
-            draw_all(&mut canvas, &grid, &camera, &feedback);
+            draw_all(&mut canvas, &grid, &camera, &feedback, show_grid);
             if !is_paused {
                 grid.evolve();
                 feedback.generation += 1;
@@ -245,17 +246,16 @@ fn main() {
                     }
                 },
                 Event::KeyDown { scancode: Some(Scancode::P), .. } => {
-                    is_paused = true;
-                    // draw_all(&mut canvas, &grid, &camera, &feedback);
-                },
-                Event::KeyDown { scancode: Some(Scancode::R), .. } => {
-                    is_paused = false;
+                    is_paused = !is_paused;
                 },
                 Event::KeyDown { scancode: Some(Scancode::E), .. } => {
                     if is_paused {
                         grid.evolve();
                         feedback.generation += 1;
                     }
+                },
+                Event::KeyDown { scancode: Some(Scancode::G), .. } => {
+                    show_grid = !show_grid;
                 },
                 _ => {}
             }
