@@ -11,6 +11,7 @@ use sdl2::rect::Rect;
 use sdl2::render::TextureQuery;
 use sdl2::mouse::MouseState;
 
+use std::cmp;
 use std::time::{Duration,Instant};
 use std::fs::File;
 use std::path::Path;
@@ -73,29 +74,41 @@ fn get_rect(camera: &Camera, x_raw: isize, y_raw: isize) -> Rect {
 fn draw_squares(canvas: &mut Canvas<Window>, grid: &Grid, camera: &Camera) {
     canvas.set_draw_color(Color::RGB(0, 255, 0));
 
+    let mut min_x_s = WINDOW_WIDTH as i32;
+    let mut min_y_s = WINDOW_HEIGHT as i32;
+
     for (x,y) in grid.cells.iter() {
         let to_fill = get_rect(camera, *x, *y);
         let _ = canvas.fill_rect(to_fill);
+        
+        if to_fill.x >= 0 && to_fill.y >= 0 {
+            min_x_s = cmp::min(min_x_s, to_fill.x);
+            min_y_s = cmp::min(min_y_s, to_fill.y);
+        }
     }
+
+    draw_grid(canvas, camera, min_x_s, min_y_s)
 }
 
-fn draw_grid(canvas: &mut Canvas<Window>, grid: &Grid, camera: &Camera) {
+fn draw_grid(canvas: &mut Canvas<Window>, camera: &Camera, mut min_x_s: i32, mut min_y_s: i32) {
     canvas.set_draw_color(Color::RGB(255, 255, 255));
 
-    let min_x_s = -1 - OFFSET_X;
-    let max_x_s = (WINDOW_WIDTH as i32) + 1 - OFFSET_X;
-    let min_y_s = -1 - OFFSET_Y;
-    let max_y_s = (WINDOW_HEIGHT as i32) + 1 - OFFSET_Y;
+    let dummy = get_rect(camera, 0, 0);
+    let width = dummy.width() as i32;
+    let height = dummy.height() as i32;
 
-    let tl_w = camera.from_screen_coords(min_x_s, min_y_s);
-    let br_w = camera.from_screen_coords(max_x_s, max_y_s);
+    while min_x_s >= 0 {
+        min_x_s -= width;
+    }
 
-    for x in tl_w.0..=br_w.0 {
-        for y in tl_w.1..=br_w.1 {
-            if !grid.is_alive(x, y) {
-                let to_draw = get_rect(camera, x, y);
-                let _ = canvas.draw_rect(to_draw);
-            }
+    while min_y_s >= 0 {
+        min_y_s -= height;
+    }
+
+    for x_s in (min_x_s..=(WINDOW_WIDTH as i32)).step_by(width as usize) {
+        for y_s in (min_y_s..=(WINDOW_HEIGHT as i32)).step_by(width as usize) {
+            let to_draw = rect!(x_s, y_s, width, height);
+            let _ = canvas.draw_rect(to_draw);
         }
     }
 }
@@ -135,7 +148,7 @@ fn draw_all(canvas: &mut Canvas<Window>, grid: &Grid, camera: &Camera, feedback:
     canvas.clear();
 
     draw_squares(canvas, grid, camera);
-    draw_grid(canvas, grid, camera);
+    // draw_grid(canvas, grid, camera);
     draw_feedback(canvas, feedback);
 
     canvas.present();
