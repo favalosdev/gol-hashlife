@@ -32,6 +32,9 @@ const ZOOM: i32 = 20;
 const OFFSET_X: i32 = (WINDOW_WIDTH / 2) as i32;
 const OFFSET_Y: i32 = (WINDOW_HEIGHT / 2) as i32;
 const CAMERA_DELTA: i32 = 2;
+const GRID_COLOR: Color = Color::RGB(255, 255, 255);
+const CELL_COLOR: Color = Color::RGB(255, 255, 255);
+const FEEDBACK_COLOR: Color = Color::RGB(255, 255, 255);
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -72,7 +75,7 @@ fn get_rect(camera: &Camera, x_raw: isize, y_raw: isize) -> Rect {
 }
 
 fn draw_squares(canvas: &mut Canvas<Window>, grid: &Grid, camera: &Camera, show_grid: bool) {
-    canvas.set_draw_color(Color::RGB(0, 255, 0));
+    canvas.set_draw_color(CELL_COLOR);
 
     let mut min_x_s = WINDOW_WIDTH as i32;
     let mut min_y_s = WINDOW_HEIGHT as i32;
@@ -93,7 +96,7 @@ fn draw_squares(canvas: &mut Canvas<Window>, grid: &Grid, camera: &Camera, show_
 }
 
 fn draw_grid(canvas: &mut Canvas<Window>, camera: &Camera, mut min_x_s: i32, mut min_y_s: i32) {
-    canvas.set_draw_color(Color::RGB(255, 255, 255));
+    canvas.set_draw_color(GRID_COLOR);
 
     let dummy = get_rect(camera, 0, 0);
     let width = dummy.width() as i32;
@@ -132,7 +135,7 @@ fn draw_feedback(canvas: &mut Canvas<Window>, feedback: &Feedback) {
     // render a surface, and convert it to a texture bound to the canvas
     let surface = font
         .render(&text)
-        .blended(Color::RGB(255, 0, 0))
+        .blended(FEEDBACK_COLOR)
         .unwrap();
 
     let texture = texture_creator
