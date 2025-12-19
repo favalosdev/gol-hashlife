@@ -106,6 +106,7 @@ fn draw_grid(canvas: &mut Canvas<Window>, camera: &Camera, min_x_s: i32, min_y_s
     let start_y = min_y_s % height;
 
     let mut x = start_x;
+
     while x <= WINDOW_WIDTH as i32 {
         let _ = canvas.draw_line((x, 0), (x, WINDOW_HEIGHT as i32));
         x += width;
@@ -113,6 +114,7 @@ fn draw_grid(canvas: &mut Canvas<Window>, camera: &Camera, min_x_s: i32, min_y_s
 
     // Draw Horizontal Lines
     let mut y = start_y;
+
     while y <= WINDOW_HEIGHT as i32 {
         let _ = canvas.draw_line((0, y), (WINDOW_WIDTH as i32, y));
         y += height;
