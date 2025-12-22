@@ -183,7 +183,6 @@ fn main() {
     match args.pattern_path {
         Some(path) => {
             file = File::open(path).unwrap();
-            
         },
         None => {
             file = File::open("assets/patterns/gosperglidergun.rle").unwrap();
