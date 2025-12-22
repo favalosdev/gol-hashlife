@@ -5,7 +5,7 @@ use ca_formats::Input;
 const RANGE: usize = 2000;
 
 pub struct Grid {
-    pub cells: HashSet<(isize, isize)>, // Important: this uses (x,y) format
+    pub cells: HashSet<(isize, isize)>, // Important: this in (x,y) format
     b: Vec<usize>,
     s: Vec<usize>,
 }
