@@ -44,13 +44,13 @@ struct Args {
     pattern_path: Option<String>,
 }
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq)]
 struct MouseCoords {
-    x: isize,
-    y: isize
+    x: f32,
+    y: f32 
 }
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq)]
 struct Feedback {
     mouse_coords: MouseCoords,
     generation: i32
@@ -186,14 +186,14 @@ fn main() {
             
         },
         None => {
-            file = File::open("assets/patterns/hwss.rle").unwrap();
+            file = File::open("assets/patterns/gosperglidergun.rle").unwrap();
         }
     }
     
     let mut feedback = Feedback {
         mouse_coords: MouseCoords {
-            x: 0,
-            y: 0
+            x: 0.0,
+            y: 0.0
         },
         generation: 0 
     };

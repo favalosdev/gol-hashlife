@@ -5,7 +5,7 @@ use ca_formats::Input;
 const RANGE: usize = 2000;
 
 pub struct Grid {
-    pub cells: HashSet<(isize, isize)>, // Important: this uses (x,y) format
+    pub cells: HashSet<(isize, isize)>, // Important: this in (x,y) format
     b: Vec<usize>,
     s: Vec<usize>,
 }
@@ -70,23 +70,6 @@ impl Grid {
 
         self.cells = copy;
     }
-
-    /*
-    pub fn get_bounds(&self) -> Option<(isize, isize, isize, isize)> {
-        let xs = self.cells.iter().map(|t| t.0).collect::<Vec<_>>();
-        let ys = self.cells.iter().map(|t| t.1).collect::<Vec<_>>();
-
-        let min_x = xs.iter().min();
-        let max_x = xs.iter().max();
-        let min_y = ys.iter().min();
-        let max_y = ys.iter().max();
-
-        match (min_x, max_x, min_y, max_y) {
-            (Some(a), Some(b), Some(c), Some(d)) => Some((*a, *b, *c, *d)),
-            _ => None
-        }
-    }
-    */
 
     pub fn get_neighbor_coords(&self, x: isize, y: isize) -> LinkedList<(isize, isize)> {
         let offsets = [
