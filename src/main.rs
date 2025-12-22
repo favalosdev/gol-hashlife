@@ -92,7 +92,7 @@ fn draw_squares(canvas: &mut Canvas<Window>, grid: &Grid, camera: &Camera, show_
 
     if show_grid {
         draw_grid(canvas, camera, min_x_s, min_y_s)
-    } 
+    }
 }
 
 fn draw_grid(canvas: &mut Canvas<Window>, camera: &Camera, min_x_s: i32, min_y_s: i32) {
@@ -133,7 +133,7 @@ fn draw_feedback(canvas: &mut Canvas<Window>, feedback: &Feedback) {
     let mx = feedback.mouse_coords.x;
     let my = feedback.mouse_coords.y;
     let generation = feedback.generation;
-    let text = format!("X: {mx}, Y: {my}, gen: {generation}");
+    let text = format!("X: {mx:.2}, Y: {my:.2}, gen: {generation}");
 
     // render a surface, and convert it to a texture bound to the canvas
     let surface = font
@@ -147,7 +147,7 @@ fn draw_feedback(canvas: &mut Canvas<Window>, feedback: &Feedback) {
 
     let TextureQuery { width: t_width, height: t_height, .. } = texture.query();
 
-    let target = rect!(WINDOW_WIDTH - t_width - padding, WINDOW_HEIGHT - t_height - padding, t_width, t_height); 
+    let target = rect!(WINDOW_WIDTH - t_width - padding, WINDOW_HEIGHT - t_height - padding, t_width, t_height);
 
     canvas.copy(&texture, None, Some(target)).unwrap();
 }
