@@ -1,4 +1,3 @@
-extern crate cute;
 extern crate sdl2;
 extern crate memoize;
 
