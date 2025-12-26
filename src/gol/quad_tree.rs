@@ -15,8 +15,8 @@ pub struct QTNode {
 impl QTNode {
     pub fn new(k: usize, n: usize, a: Option<QTNode>, b: Option<QTNode>, c: Option<QTNode>, d: Option<QTNode>) -> Self {
         Self {
-            k,
-            n,
+            k, // Level of the node
+            n, // Number of cells under this node
             a: Box::new(a),
             b: Box::new(b),
             c: Box::new(c),
@@ -267,7 +267,11 @@ pub fn successor(m: QTNode) -> QTNode {
 #[memoize]
 pub fn expand(m: QTNode, x: usize, y: usize) -> LinkedList<(isize, isize)> {
     if m.n == 0 {
-        list![]
+        return list![];
+    }
+
+    if m.k == 0 {
+        return list![((x >> 0) as isize, (y >> 0) as isize)];
     } else {
         let k = m.k as u32;
         let size: usize = (2 as u32).pow(k) as usize;
