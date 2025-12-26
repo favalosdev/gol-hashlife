@@ -97,18 +97,18 @@ fn draw_squares(canvas: &mut Canvas<Window>, grid: &Grid, camera: &Camera, show_
 fn draw_grid(canvas: &mut Canvas<Window>, camera: &Camera, min_x_s: i32, min_y_s: i32) {
     canvas.set_draw_color(GRID_COLOR);
 
-    let dummy = get_rect(camera, 0, 0);
-    let width = dummy.width() as i32;
-    let height = dummy.height() as i32;
+    let square= get_rect(camera, 0, 0);
+    let square_width = square.width() as i32;
+    let square_height = square.height() as i32;
 
-    let start_x = min_x_s % width;
-    let start_y = min_y_s % height;
+    let start_x = min_x_s % square_width;
+    let start_y = min_y_s % square_height;
 
     let mut x = start_x;
 
     while x <= WINDOW_WIDTH as i32 {
         let _ = canvas.draw_line((x, 0), (x, WINDOW_HEIGHT as i32));
-        x += width;
+        x += square_width;
     }
 
     // Draw Horizontal Lines
@@ -116,7 +116,7 @@ fn draw_grid(canvas: &mut Canvas<Window>, camera: &Camera, min_x_s: i32, min_y_s
 
     while y <= WINDOW_HEIGHT as i32 {
         let _ = canvas.draw_line((0, y), (WINDOW_WIDTH as i32, y));
-        y += height;
+        y += square_height;
     } 
 }
 
