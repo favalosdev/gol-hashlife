@@ -261,6 +261,12 @@ fn main() {
                 Event::KeyDown { scancode: Some(Scancode::G), .. } => {
                     show_grid = !show_grid;
                 },
+                Event::MouseButtonDown { x, y, .. } => {
+                    if is_paused {
+                        let (x_w, y_w) = camera.from_screen_coords(x - OFFSET_X, y - OFFSET_Y);
+                        grid.cells.insert((x_w.floor() as isize, -(y_w.floor()) as isize));
+                    }
+                }
                 _ => {}
             }
             std::thread::sleep(Duration::new(0, 1_000_000_000u32 / FPS));

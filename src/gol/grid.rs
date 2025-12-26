@@ -2,7 +2,7 @@ use std::collections::{HashSet, LinkedList};
 use ca_formats::rle::Rle;
 use ca_formats::Input;
 
-const RANGE: usize = 8000;
+const RANGE: usize = 2000;
 
 pub struct Grid {
     pub cells: HashSet<(isize, isize)>, // Important: this in (x,y) format
