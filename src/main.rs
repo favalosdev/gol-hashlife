@@ -117,7 +117,7 @@ fn draw_grid(canvas: &mut Canvas<Window>, camera: &Camera, min_x_s: i32, min_y_s
     while y <= WINDOW_HEIGHT as i32 {
         let _ = canvas.draw_line((0, y), (WINDOW_WIDTH as i32, y));
         y += square_height;
-    } 
+    }
 }
 
 fn draw_feedback(canvas: &mut Canvas<Window>, feedback: &Feedback) {
