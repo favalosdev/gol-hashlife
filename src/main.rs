@@ -120,7 +120,7 @@ fn draw_grid(canvas: &mut Canvas<Window>, camera: &Camera, min_x_s: i32, min_y_s
     }
 }
 
-fn draw_feedback(canvas: &mut Canvas<Window>, feedback: &Feedback, show_grid: bool) {
+fn draw_feedback(canvas: &mut Canvas<Window>, feedback: &Feedback) {
     let texture_creator = canvas.texture_creator();
     let ttf_context = sdl2::ttf::init().map_err(|e| e.to_string()).unwrap();
     let padding = 10;
@@ -155,7 +155,7 @@ fn draw_all(canvas: &mut Canvas<Window>, grid: &Grid, camera: &Camera, feedback:
     canvas.set_draw_color(Color::RGB(0,0,0));
     canvas.clear();
     draw_squares(canvas, grid, camera, show_grid);
-    draw_feedback(canvas, feedback, show_grid);
+    draw_feedback(canvas, feedback);
     canvas.present();
 }
     
