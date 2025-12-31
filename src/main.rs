@@ -31,8 +31,8 @@ const ZOOM: i32 = 20;
 const OFFSET_X: i32 = (WINDOW_WIDTH / 2) as i32;
 const OFFSET_Y: i32 = (WINDOW_HEIGHT / 2) as i32;
 const CAMERA_DELTA: i32 = 2;
-const GRID_COLOR: Color = Color::RGB(255, 255, 255);
-const CELL_COLOR: Color = Color::RGB(255, 255, 255);
+const GRID_COLOR: Color = Color::RGB(64, 64, 64);
+const CELL_COLOR: Color = Color::RGB(0, 255, 0);
 const FEEDBACK_COLOR: Color = Color::RGB(255, 255, 255);
 
 #[derive(Parser, Debug)]
@@ -120,7 +120,7 @@ fn draw_grid(canvas: &mut Canvas<Window>, camera: &Camera, min_x_s: i32, min_y_s
     }
 }
 
-fn draw_feedback(canvas: &mut Canvas<Window>, feedback: &Feedback) {
+fn draw_feedback(canvas: &mut Canvas<Window>, feedback: &Feedback, show_grid: bool) {
     let texture_creator = canvas.texture_creator();
     let ttf_context = sdl2::ttf::init().map_err(|e| e.to_string()).unwrap();
     let padding = 10;
@@ -155,7 +155,7 @@ fn draw_all(canvas: &mut Canvas<Window>, grid: &Grid, camera: &Camera, feedback:
     canvas.set_draw_color(Color::RGB(0,0,0));
     canvas.clear();
     draw_squares(canvas, grid, camera, show_grid);
-    draw_feedback(canvas, feedback);
+    draw_feedback(canvas, feedback, show_grid);
     canvas.present();
 }
     
