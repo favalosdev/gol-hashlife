@@ -38,12 +38,12 @@ impl Grid {
         self.cells = pattern
             .map(|cell| cell.unwrap())
             .filter(|data | data.state == 1)
-            .map(|data| ((data.position.0 - (width as i64) / 2) as isize, (-data.position.1 - (height as i64) / 2) as isize))
+            .map(|data| ((data.position.0 - (width as i64) / 2) as isize, -(data.position.1 - (height as i64) / 2) as isize))
             .collect::<HashSet<_>>();
     }
 
-    pub fn is_alive(&self, x: isize, y: isize) -> bool {
-        self.cells.get(&(x, y)).is_some()
+    pub fn is_alive(&self, coords: (isize, isize)) -> bool {
+        self.cells.get(&coords).is_some()
     }
 
     pub fn evolve(&mut self) {
@@ -52,8 +52,8 @@ impl Grid {
         for (x,y) in self.cells.iter() {
             let (x, y) = (*x, *y);
 
-            to_traverse.push_back((x, y));
-            let mut neighbors = self.get_neighbor_coords(x, y);
+            to_traverse.push_back((x,y));
+            let mut neighbors = self.get_neighbor_coords((x,y));
             to_traverse.append(&mut neighbors)
         }
 
@@ -61,7 +61,7 @@ impl Grid {
 
         for (x, y) in to_traverse.iter() {
             let (x, y) = (*x, *y);
-            let will_be_alive = self.transition(x, y);
+            let will_be_alive = self.transition((x,y));
 
             if will_be_alive {
                 copy.insert((x, y));
@@ -71,12 +71,14 @@ impl Grid {
         self.cells = copy;
     }
 
-    pub fn get_neighbor_coords(&self, x: isize, y: isize) -> LinkedList<(isize, isize)> {
+    pub fn get_neighbor_coords(&self, pos: (isize, isize)) -> LinkedList<(isize, isize)> {
         let offsets = [
             (-1, -1), (0, -1), (1, -1),
             (-1,  0),          (1,  0),
             (-1,  1), (0,  1), (1,  1),
         ];
+
+        let (x, y) = pos;
 
         let coords: LinkedList<(isize, isize)> = offsets.iter().map(|&(dx, dy)| {
             let mut x_f= x + dx;
@@ -96,12 +98,12 @@ impl Grid {
         return coords;
     }
 
-    fn count_alive_neighbors(&self, x: isize, y: isize) -> usize {
-        self.get_neighbor_coords(x, y).iter().map(|&(x,y)| self.is_alive(x, y) as usize).sum()
+    fn count_alive_neighbors(&self, coords: (isize, isize)) -> usize {
+        self.get_neighbor_coords(coords).iter().map(|&(x,y)| self.is_alive((x,y)) as usize).sum()
     }
 
-    pub fn transition(&self, x: isize, y: isize) -> bool {
-        let n = self.count_alive_neighbors(x, y);
-        if self.is_alive(x, y) { self.s.contains(&n) } else { self.b.contains(&n) }
+    pub fn transition(&self, coords: (isize, isize)) -> bool {
+        let n = self.count_alive_neighbors(coords);
+        if self.is_alive(coords) { self.s.contains(&n) } else { self.b.contains(&n) }
     }
 }

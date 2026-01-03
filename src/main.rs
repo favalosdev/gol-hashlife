@@ -264,7 +264,13 @@ fn main() {
                 Event::MouseButtonDown { x, y, .. } => {
                     if is_paused {
                         let (x_w, y_w) = camera.from_screen_coords(x - OFFSET_X, y - OFFSET_Y);
-                        grid.cells.insert((x_w.floor() as isize, -(y_w.floor()) as isize));
+                        let coords = (x_w.floor() as isize, -(y_w.floor()) as isize);
+                        
+                        if grid.is_alive(coords) {
+                            grid.cells.remove(&coords);
+                        } else {
+                            grid.cells.insert(coords);
+                        }
                     }
                 }
                 _ => {}
