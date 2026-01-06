@@ -51,6 +51,7 @@ struct MouseCoords {
 
 #[derive(Clone, PartialEq)]
 struct Feedback {
+    cell_count: usize,
     mouse_coords: MouseCoords,
     generation: i32
 }
@@ -132,7 +133,8 @@ fn draw_feedback(canvas: &mut Canvas<Window>, feedback: &Feedback) {
     let mx = feedback.mouse_coords.x;
     let my = feedback.mouse_coords.y;
     let generation = feedback.generation;
-    let text = format!("X: {mx:.2}, Y: {my:.2}, gen: {generation}");
+    let cell_count = feedback.cell_count;
+    let text = format!("cells: {cell_count}, x: {mx:.2}, y: {my:.2}, gen: {generation}");
 
     // render a surface, and convert it to a texture bound to the canvas
     let surface = font
@@ -189,6 +191,7 @@ fn main() {
     }
     
     let mut feedback = Feedback {
+        cell_count: grid.cells.iter().count(),
         mouse_coords: MouseCoords {
             x: 0.0,
             y: 0.0
@@ -220,6 +223,7 @@ fn main() {
         let mouse_state: MouseState = event_pump.mouse_state();
         let (x_w, y_w) = camera.from_screen_coords(mouse_state.x() - OFFSET_X, mouse_state.y() - OFFSET_Y);
         feedback.mouse_coords = MouseCoords { x: x_w, y: -y_w };
+        feedback.cell_count = grid.cells.iter().count();
 
         for event in event_pump.poll_iter() {
             match event {
