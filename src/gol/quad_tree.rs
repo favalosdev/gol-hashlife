@@ -111,7 +111,11 @@ impl Arena {
     }
 
     fn next_gen(&mut self, m: NodeId) -> NodeId {
-        if self.nodes[m].n == 0 {
+        if let Some(next) = self.evolve_cache.get(&m) {
+            return *next;
+        } 
+
+        let next = if self.nodes[m].n == 0 {
             // empty
             self.nodes[m].a
         } else if self.nodes[m].k == 2 {
@@ -160,7 +164,10 @@ impl Arena {
 
             let s = self.join(s1, s2, s3, s4);
             s 
-        }
+        };
+
+        self.evolve_cache.insert(m, next);
+        next
     }
 
     // Convert QuadTree to (x,y) world coordinate system
