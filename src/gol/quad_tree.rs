@@ -1,5 +1,4 @@
-use memoize::memoize;
-use std::collections::{LinkedList, HashMap};
+use std::collections::{HashMap, LinkedList};
 use literal::list;
 
 type NodeId = usize;
@@ -25,38 +24,45 @@ impl Node {
 
 struct Arena {
     nodes: Vec<Node>,
-    evolve_cache: HashMap<NodeId, NodeId>
+    evolve_cache: HashMap<NodeId, NodeId>,
+    root: NodeId
 }
 
 impl Arena {
     fn new() -> Self {
-        let mut nodes = Vec::new();
+        let mut nodes = vec![];
 
         let void = Node::new(0, 0, VOID, VOID, VOID, VOID);
-        let dead = Node::new(0, 1, VOID, VOID, VOID, VOID);
-        let alive = Node::new(1, 1, VOID, VOID, VOID, VOID);
+        let dead = Node::new(0, 0, VOID, VOID, VOID, VOID);
+        let alive = Node::new(1, 0, VOID, VOID, VOID, VOID);
 
         nodes.push(void);
         nodes.push(dead);
         nodes.push(alive);
 
-        Arena { nodes, evolve_cache: HashMap::new() }
+        Arena { nodes, evolve_cache: HashMap::new(), root: ALIVE }
     }
 
     fn new_node(&mut self, node: Node) -> NodeId {
         let id = self.nodes.len();
+
+        // Set new root if needed
+        if self.nodes[self.root].k < node.k {
+            self.root = id;
+        }
+
         self.nodes.push(node);
         id
     }
 
     fn join(&mut self, a: NodeId, b: NodeId, c: NodeId, d: NodeId) -> NodeId {
-        let n = self.nodes[a].n + self.nodes[b].n + self.nodes[c].n + self.nodes[d].n;
-        let to_add = Node::new(n, self.nodes[a].k + 1, a, b, c, d);
+        let n = &self.nodes[a].n + &self.nodes[b].n + &self.nodes[c].n + &self.nodes[d].n;
+        let to_add = Node::new(n, &self.nodes[a].k + 1, a, b, c, d);
         self.new_node(to_add)
     }
 
     fn get_zero(&mut self, k: usize) -> NodeId {
-        if k == 1 {
+        if k == 0 {
             DEAD
         } else {
             let z= self.get_zero(k-1);
@@ -105,15 +111,13 @@ impl Arena {
     }
 
     fn next_gen(&mut self, m: NodeId) -> NodeId {
-        let result = if self.nodes[m].n == 0 {
+        if self.nodes[m].n == 0 {
             // empty
             self.nodes[m].a
         } else if self.nodes[m].k == 2 {
             // base case
             self.life_4x4(m)
         } else {
-            // Recursive case
-            // We need to get all the node references first to avoid borrow checker issues
             let m_node = &self.nodes[m];
             let (ma, mb, mc, md) = (m_node.a, m_node.b, m_node.c, m_node.d);
             
@@ -129,64 +133,41 @@ impl Arena {
             let d = &self.nodes[md];
             let (da, db, dc, dd) = (d.a, d.b, d.c, d.d);
             
-            let c1 = self.next_gen(self.join(aa, ab, ac, ad));
-            let c2 = self.next_gen(self.join(ab, ba, ad, bc));
-            let c3 = self.next_gen(self.join(ba, bb, bc, bd));
-            let c4 = self.next_gen(self.join(ac, ad, ca, cb));
-            let c5 = self.next_gen(self.join(ad, bc, cb, da));
-            let c6 = self.next_gen(self.join(bc, bd, da, db));
-            let c7 = self.next_gen(self.join(ca, cb, cc, cd));
-            let c8 = self.next_gen(self.join(cb, da, cd, dc));
-            let c9 = self.next_gen(self.join(da, db, dc, dd));
-            
-            // Get the d, c, b, a fields from each result
-            let c1_node = &self.nodes[c1];
-            let c2_node = &self.nodes[c2];
-            let c3_node = &self.nodes[c3];
-            let c4_node = &self.nodes[c4];
-            let c5_node = &self.nodes[c5];
-            let c6_node = &self.nodes[c6];
-            let c7_node = &self.nodes[c7];
-            let c8_node = &self.nodes[c8];
-            let c9_node = &self.nodes[c9];
-            
-            let s = self.join(
-                self.join(c1_node.d, c2_node.c, c4_node.b, c5_node.a),
-                self.join(c2_node.d, c3_node.c, c5_node.b, c6_node.a),
-                self.join(c4_node.d, c5_node.c, c7_node.b, c8_node.a),
-                self.join(c5_node.d, c6_node.c, c8_node.b, c9_node.a),
-            );
-            
-            s
-        };
-        result
-    } 
+            let j1 = self.join(aa, ab, ac, ad);
+            let j2 = self.join(ab, ba, ad, bc);
+            let j3 = self.join(ba, bb, bc, bd);
+            let j4 = self.join(ac, ad, ca, cb);
+            let j5 = self.join(ad, bc, cb, da);
+            let j6 = self.join(bc, bd, da, db);
+            let j7 = self.join(ca, cb, cc, cd);
+            let j8 = self.join(cb, da, cd, dc);
+            let j9 = self.join(da, db, dc, dd);
 
-    /*
-    @lru_cache(maxsize=2**20)
-    def next_gen(m):
-        """Return the 2**k-1 x 2**k-1 successor, 1 generation forward"""    
-        if m.n==0: # empty
-            return m.a    
-        elif m.k == 2:  # base case               
-            s = life_4x4(m)    
-        else:
-            c1 = next_gen(join(m.a.a, m.a.b, m.a.c, m.a.d))
-            c2 = next_gen(join(m.a.b, m.b.a, m.a.d, m.b.c))
-            c3 = next_gen(join(m.b.a, m.b.b, m.b.c, m.b.d))
-            c4 = next_gen(join(m.a.c, m.a.d, m.c.a, m.c.b))        
-            c5 = next_gen(join(m.a.d, m.b.c, m.c.b, m.d.a))
-            c6 = next_gen(join(m.b.c, m.b.d, m.d.a, m.d.b))
-            c7 = next_gen(join(m.c.a, m.c.b, m.c.c, m.c.d))
-            c8 = next_gen(join(m.c.b, m.d.a, m.c.d, m.d.c))
-            c9 = next_gen(join(m.d.a, m.d.b, m.d.c, m.d.d))
+            let c1 = self.next_gen(j1);
+            let c2 = self.next_gen(j2);
+            let c3 = self.next_gen(j3);
+            let c4 = self.next_gen(j4);
+            let c5 = self.next_gen(j5);
+            let c6 = self.next_gen(j6);
+            let c7 = self.next_gen(j7);
+            let c8 = self.next_gen(j8);
+            let c9 = self.next_gen(j9);
             
-            s = join(
-                (join(c1.d, c2.c, c4.b, c5.a)),
-                (join(c2.d, c3.c, c5.b, c6.a)),
-                (join(c4.d, c5.c, c7.b, c8.a)),
-                (join(c5.d, c6.c, c8.b, c9.a)),
-            )                    
-        return s
-    */
+            let s1 = self.join(self.nodes[c1].d, self.nodes[c2].c, self.nodes[c4].b, self.nodes[c5].a);
+            let s2 = self.join(self.nodes[c2].d, self.nodes[c3].c, self.nodes[c5].b, self.nodes[c6].a);
+            let s3 = self.join(self.nodes[c4].d, self.nodes[c5].c, self.nodes[c7].b, self.nodes[c8].a);
+            let s4 = self.join(self.nodes[c5].d, self.nodes[c6].c, self.nodes[c8].b, self.nodes[c9].a);
+
+            let s = self.join(s1, s2, s3, s4);
+            s 
+        }
+    }
+
+    // Convert QuadTree to (x,y) world coordinate system
+    fn to_world(&self) -> LinkedList<(isize, isize)> {
+        list![]
+    }
+
+    // Convert world coordinates to QuadTree
+    fn from_world(&self, ) {}
 }
