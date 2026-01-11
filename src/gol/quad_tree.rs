@@ -6,21 +6,22 @@ use literal::list;
 pub struct QTNode {
     k: usize,
     n: usize,
-    a: Box<Option<QTNode>>,
-    b: Box<Option<QTNode>>,
-    c: Box<Option<QTNode>>,
-    d: Box<Option<QTNode>>
+    a: Option<Box<QTNode>>,
+    b: Option<Box<QTNode>>,
+    c: Option<Box<QTNode>>,
+    d: Option<Box<QTNode>>
 }
 
+/* 
 impl QTNode {
-    pub fn new(k: usize, n: usize, a: Option<QTNode>, b: Option<QTNode>, c: Option<QTNode>, d: Option<QTNode>) -> Self {
+    fn new(k: usize, n: usize, a: Option<&QTNode>, b: Option<&QTNode>, c: Option<&QTNode>, d: Option<&QTNode>) -> Self {
         Self {
             k, // Level of the node
             n, // Number of cells under this node
-            a: Box::new(a),
-            b: Box::new(b),
-            c: Box::new(c),
-            d: Box::new(d)
+            a: if a.is_some() { Some(Box::new(*a.unwrap())) } else { None },
+            b: if b.is_some() { Some(Box::new(*b.unwrap())) } else { None },
+            c: if c.is_some() { Some(Box::new(*c.unwrap())) } else { None },
+            d: if d.is_some() { Some(Box::new(*d.unwrap())) } else { None }
         }
     }
 }
@@ -36,14 +37,24 @@ pub fn join(a: &Option<QTNode>, b: &Option<QTNode>, c: &Option<QTNode>, d: &Opti
     let cn = cr.n;
     let dn = dr.n;
     let n = an + bn + cn + dn;
-    // We can later on see whether this performs or not
+
     QTNode::new(ar.k + 1, n, Some(ar.clone()), Some(br.clone()),Some(cr.clone()), Some(dr.clone()))
+}
+
+#[memoize]
+pub fn empty_tree() -> QTNode {
+    QTNode::new(0, 0, None, None, None, None)
+}
+
+#[memoize]
+pub fn trivial_tree() -> QTNode {
+    QTNode::new(0, 1, None, None, None, None)
 }
 
 #[memoize]
 pub fn get_zero(k: usize) -> QTNode {
     if k == 0 {
-        QTNode::new(0, 0, None, None, None, None)
+        empty_tree()
     } else {
         let z = Some(get_zero(k-1));
         join(&z, &z,&z, &z)
@@ -85,9 +96,9 @@ pub fn life(
     }
 
     if (e.unwrap().n == 1 && outer == 2) || outer == 3 {
-        QTNode::new(0, 1, None, None, None, None)
+        trivial_tree()
     } else {
-        QTNode::new(0, 0, None, None, None, None)
+        empty_tree()
     }
 }
 
@@ -291,3 +302,39 @@ pub fn expand(m: QTNode, x: usize, y: usize) -> LinkedList<(isize, isize)> {
         points
     }
 }
+
+/*
+ def construct(pts):
+    """Turn a list of (x,y) coordinates into a quadtree"""
+    # Force start at (0,0)
+    min_x = min(*[x for x, y in pts])
+    min_y = min(*[y for x, y in pts])
+    pattern = {(x - min_x, y - min_y): on for x, y in pts}
+    k = 0
+
+    while len(pattern) != 1:
+        # bottom-up construction
+        next_level = {}
+        z = get_zero(k)
+
+        while len(pattern) > 0:
+            x, y = next(iter(pattern))
+            x, y = x - (x & 1), y - (y & 1)
+            # read all 2x2 neighbours, removing from those to work through
+            # at least one of these must exist by definition
+            a = pattern.pop((x, y), z)
+            b = pattern.pop((x + 1, y), z)
+            c = pattern.pop((x, y + 1), z)
+            d = pattern.pop((x + 1, y + 1), z)
+            next_level[x >> 1, y >> 1] = join(a, b, c, d)
+
+        # merge at the next level
+        pattern = next_level
+        k += 1
+    return pattern.popitem()[1]
+*/
+
+pub fn construct(points: LinkedList<(isize, isize)>) -> QTNode {
+    empty_tree()
+}
+*/
