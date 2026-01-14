@@ -24,8 +24,8 @@ impl Node {
 
 struct Arena {
     nodes: Vec<Node>,
-    evolve_cache: HashMap<NodeId, NodeId>,
-    root: NodeId
+    root: NodeId,
+    evolve_cache: HashMap<NodeId, NodeId>
 }
 
 impl Arena {
@@ -40,7 +40,7 @@ impl Arena {
         nodes.push(dead);
         nodes.push(alive);
 
-        Arena { nodes, evolve_cache: HashMap::new(), root: ALIVE }
+        Arena { nodes, root: ALIVE, evolve_cache: HashMap::new() }
     }
 
     fn new_node(&mut self, node: Node) -> NodeId {
@@ -170,11 +170,12 @@ impl Arena {
         next
     }
 
-    // Convert QuadTree to (x,y) world coordinate system
+    // Convert QuadTree to (x,y) world coordinate system.
     fn to_world(&self) -> LinkedList<(isize, isize)> {
         list![]
     }
 
-    // Convert world coordinates to QuadTree
-    fn from_world(&self, ) {}
+    // Convert world coordinates to QuadTree. Doesn't return something.
+    fn from_world(&self, cells: LinkedList<(isize, isize)>) {
+    }
 }
