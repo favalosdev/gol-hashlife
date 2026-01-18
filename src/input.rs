@@ -3,8 +3,8 @@ use sdl2::keyboard::{Keycode, Scancode};
 use sdl2::EventPump;
 use sdl2::mouse::MouseState;
 
-use crate::gol::camera::Camera;
-use crate::gol::grid::Grid;
+use crate::camera::Camera;
+use crate::grid::Grid;
 use crate::feedback::{Feedback, MouseCoords};
 use crate::config::*;
 

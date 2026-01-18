@@ -10,14 +10,15 @@ use std::fs::File;
 use clap::Parser;
 use ca_formats::rle::Rle;
 
-mod gol;
 mod config;
 mod feedback;
 mod renderer;
 mod input;
+mod grid;
+mod camera;
 
-use gol::grid::Grid;
-use gol::camera::Camera;
+use grid::Grid;
+use camera::Camera;
 use config::*;
 use feedback::Feedback;
 use renderer::draw_all;

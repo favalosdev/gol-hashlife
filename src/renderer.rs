@@ -6,8 +6,8 @@ use sdl2::render::TextureQuery;
 use std::cmp;
 use std::path::Path;
 
-use crate::gol::grid::Grid;
-use crate::gol::camera::Camera;
+use crate::grid::Grid;
+use crate::camera::Camera;
 use crate::config::*;
 use crate::feedback::Feedback;
 
