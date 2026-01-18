@@ -1,0 +1,13 @@
+use sdl2::pixels::Color;
+
+pub const WINDOW_HEIGHT: u32 = 600;
+pub const WINDOW_WIDTH: u32 = 800;
+pub const GAME_FREQ: u64 = 20;
+pub const FPS: u32 = 200;
+pub const ZOOM: i32 = 20;
+pub const OFFSET_X: i32 = (WINDOW_WIDTH / 2) as i32;
+pub const OFFSET_Y: i32 = (WINDOW_HEIGHT / 2) as i32;
+pub const CAMERA_DELTA: i32 = 2;
+pub const GRID_COLOR: Color = Color::RGB(64, 64, 64);
+pub const CELL_COLOR: Color = Color::RGB(0, 255, 0);
+pub const FEEDBACK_COLOR: Color = Color::RGB(255, 255, 255);
